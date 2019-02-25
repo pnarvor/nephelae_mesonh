@@ -38,7 +38,7 @@ class NetCDFInterface:
                 else:
                     key_start = key.start
                 if key.stop == None:
-                    key_stop = self.shape[i] - 1
+                    key_stop = self.shape[i]
                 else:
                     key_stop = key.stop
                 key = slice(key_start, key_stop, key.step)
@@ -50,18 +50,18 @@ class NetCDFInterface:
                     t = self.shape[i] * (key.start // self.shape[i])
                     checkedKeys.append(slice(key.start - t, key.stop - t, key.step))
                 else:
-                    if key.start < 0 or key.start >= self.shape[i]:
+                    if key.start < 0 or key.start > self.shape[i]:
                         raise Exception("Error : index not inside shape")
-                    if key.stop < 0 or key.stop >= self.shape[i]:
+                    if key.stop < 0 or key.stop > self.shape[i]:
                         raise Exception("Error : index not inside shape")
                     checkedKeys.append(key)
             else:
                 if self.isPeriodic[i]:
                     key = key - self.shape[i] * (key // self.shape[i])
                 else:
-                    if key < 0 or key >= self.shape[i]:
+                    if key < 0 or key > self.shape[i]:
                         raise Exception("Error : index not inside shape")
-                checkedKeys.append(slice(key, key, None))
+                checkedKeys.append(slice(key, key + 1, None))
 
         return tuple(checkedKeys)
 
@@ -80,44 +80,42 @@ class NetCDFInterface:
     def compute_read_write_tuples(self, keys):
         shape = []
         for key in keys:
-            shape.append(key.stop - key.start + 1)
+            shape.append(key.stop - key.start)
         self.outputShape = tuple(shape)
 
         readTuples  = []
         writeTuples = []
-        for key, inDimLen, outDimLen in zip(keys, self.shape, self.outputShape):
+        for key, readDimLen, writeDimLen in zip(keys, self.shape, self.outputShape):
 
-            Ntuples = 1 + key.stop // inDimLen
-            print(Ntuples, key, inDimLen, outDimLen)
+            Ntuples = 1 + (key.stop - 1) // readDimLen
+            print(Ntuples, key, readDimLen, writeDimLen)
 
-            ituples = []
+            rtuples = []
             if Ntuples <= 1:
-                ituples = [key]
+                rtuples = [key]
             else:
-                ituples = [slice(0, inDimLen-1)] * (Ntuples - 2)
-                ituples.insert(0, slice(key.start, inDimLen-1))
-                ituples.append(slice(0, key.stop % inDimLen))
+                rtuples = [slice(0, readDimLen)] * (Ntuples - 2)
+                rtuples.insert(0, slice(key.start, readDimLen))
+                rtuples.append(slice(0, (key.stop - 1) % readDimLen + 1))
             index0 = 0
-            otuples = []
-            for tu in ituples:
-                otuples.append(slice(index0, index0 + tu.stop - tu.start))
-                index0 += tu.stop - tu.start + 1
+            wtuples = []
+            for tu in rtuples:
+                wtuples.append(slice(index0, index0 + tu.stop - tu.start))
+                index0 += tu.stop - tu.start
 
-            readTuples.append(ituples)
-            writeTuples.append(otuples)
+            readTuples.append(rtuples)
+            writeTuples.append(wtuples)
 
-            print("--- ", ituples)
-            print("--- ", otuples)
+            print("--- ", rtuples)
+            print("--- ", wtuples)
         
         self.readTuples = NetCDFInterface.expandTuples(readTuples)
         self.writeTuples = NetCDFInterface.expandTuples(writeTuples)
 
-        print("readTuples len  : ", len(readTuples))
-        for tu in self.readTuples:
-            print(tu)
-        print("writeTuples len : ", len(writeTuples))
-        for tu in self.writeTuples:
-            print(tu)
+        print("Tuples len  : ", len(readTuples))
+        for rtu, wtu in zip(self.readTuples, self.writeTuples):
+            print("r : ", rtu)
+            print("w : ", wtu)
         
 
     def __getitem__(self, keys):
