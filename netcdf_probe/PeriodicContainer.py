@@ -15,6 +15,7 @@ class PeriodicContainer:
         """
 
         self.data = data
+        self.shape = self.data.shape # not used in this class, inly for convenience
         self.isPeriodic = np.array([False]*len(self.data.shape))
         for i in periodicDimension:
             self.isPeriodic[i] = True
@@ -34,10 +35,7 @@ class PeriodicContainer:
         get : data getter separated from __getitem__ to be able to read data using tuples from another PeriodicContainer for efficiency
         """
         res = np.empty(outputShape)
-        print(res.shape)
         for readIndex, writeIndex in zip(readTuples, writeTuples):
-            print("Read index  :", readIndex)
-            print("Write index :", writeIndex, "\n")
             res[writeIndex] = self.data[list(readIndex)]
         return res
 
@@ -101,7 +99,6 @@ class PeriodicContainer:
         for key, readDimLen, writeDimLen in zip(keys, self.data.shape, self.outputShape):
 
             Ntuples = 1 + (key.stop - 1) // readDimLen
-            print(Ntuples, key, readDimLen, writeDimLen)
 
             rtuples = []
             if Ntuples <= 1:
@@ -118,17 +115,9 @@ class PeriodicContainer:
 
             readTuples.append(rtuples)
             writeTuples.append(wtuples)
-
-            print("--- ", rtuples)
-            print("--- ", wtuples)
         
         self.readTuples  = PeriodicContainer.expandTuples(readTuples)
         self.writeTuples = PeriodicContainer.expandTuples(writeTuples)
-
-        print("Tuples len  : ", len(readTuples))
-        for rtu, wtu in zip(self.readTuples, self.writeTuples):
-            print("r : ", rtu)
-            print("w : ", wtu)
         
 
 

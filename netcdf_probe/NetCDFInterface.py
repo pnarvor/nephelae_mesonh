@@ -24,5 +24,4 @@ class NetCDFInterface:
         self.shape = tuple(shape)
 
     def __getitem__(self, keys):
-
         return self.varData[keys]
