@@ -12,7 +12,7 @@ mesonhFiles = sys.argv[slice(1,len(sys.argv))]
 atm = MFDataset(mesonhFiles)
 
 data = cdf.PeriodicContainer(cdf.NetCDFInterface(atm, 'RCT'), [2,3])
-image = np.squeeze(data[0,80,0:400,0:400])
+image = np.squeeze(data[0,80,0:800,0:800])
 
 implot = plt.imshow(image, cmap='viridis')
 

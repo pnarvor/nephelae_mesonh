@@ -25,14 +25,20 @@ class PeriodicContainer:
     def __getitem__(self, keys):
     
         self.compute_read_write_tuples(self.format_keys(keys))
-        res = np.empty(self.outputShape)
-        print(res.shape)
+        return self.get(self.outputShape, self.readTuples, self.writeTuples)
 
-        for readIndex, writeIndex in zip(self.readTuples, self.writeTuples):
+
+    def get(self, outputShape, readTuples, writeTuples):
+
+        """
+        get : data getter separated from __getitem__ to be able to read data using tuples from another PeriodicContainer for efficiency
+        """
+        res = np.empty(outputShape)
+        print(res.shape)
+        for readIndex, writeIndex in zip(readTuples, writeTuples):
             print("Read index  :", readIndex)
             print("Write index :", writeIndex, "\n")
             res[writeIndex] = self.data[list(readIndex)]
-
         return res
 
     def format_keys(self, keys):
