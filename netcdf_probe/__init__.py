@@ -1,2 +1,3 @@
-from .PeriodicContainer import PeriodicContainer
-from .NetCDFInterface   import NetCDFInterface
+from .PeriodicContainer   import PeriodicContainer
+from .DoubleBufferedCache import DoubleBufferedCache
+from .NetCDFInterface     import NetCDFInterface
