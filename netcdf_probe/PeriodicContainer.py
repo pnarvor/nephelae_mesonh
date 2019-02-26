@@ -1,32 +1,39 @@
-# This class is intended to provide a fast single data read in a collection of mesonh files
-# by mean of putting part of the files in cache 
-# under the assumption that successive read for the file are not far from each other.
-# (primary application is a simulation of a UAV flight into MesoNH files
-
 import numpy as np
 
-class NetCDFInterface:
+class PeriodicContainer:
 
-    # self.netcdf : handle to already opened netCDF files (either netCDF4.MFDataset or netCDF4.Dataset types)
+    """ 
+    PeriodicContainer : This class is a helper to access data in a numpy-like array where some dimensions are known to be periodic
+    """
 
-    def __init__(self, netcdfData, netcdfVariableName, periodicVariables=[]):
+    def __init__(self, data, periodicDimension=[]):
 
-        self.netcdfData = netcdfData
-        self.varName = netcdfVariableName
-        self.varData = self.netcdfData.variables[netcdfVariableName]
-        shape = []
-        self.isPeriodic = []
-        for dim in self.varData.dimensions:
-            print(dim)
-            shape.append(len(self.netcdfData.dimensions[dim]))
-            if any(dim in var for var in periodicVariables):
-                self.isPeriodic.append(True)
-            else:
-                self.isPeriodic.append(False)
-        self.shape = tuple(shape)
+        """
+        PeriodicContainer constructor:
+            - data               : numpy like array (must implement __getitem__ and shape)
+            - periodicDimensions : list of dimension index to be handled as periodic
+        """
+
+        self.data = data
+        self.isPeriodic = np.array([False]*len(self.data.shape))
+        for i in periodicDimension:
+            self.isPeriodic[i] = True
         self.outputShape = ()
         self.readTuples = []
         self.writeTuples = []
+
+    def __getitem__(self, keys):
+    
+        self.compute_read_write_tuples(self.format_keys(keys))
+        res = np.empty(self.outputShape)
+        print(res.shape)
+
+        for readIndex, writeIndex in zip(self.readTuples, self.writeTuples):
+            print("Read index  :", readIndex)
+            print("Write index :", writeIndex, "\n")
+            res[writeIndex] = self.data[list(readIndex)]
+
+        return res
 
     def format_keys(self, keys):
         checkedKeys = []
@@ -38,7 +45,7 @@ class NetCDFInterface:
                 else:
                     key_start = key.start
                 if key.stop == None:
-                    key_stop = self.shape[i]
+                    key_stop = self.data.shape[i]
                 else:
                     key_stop = key.stop
                 key = slice(key_start, key_stop, key.step)
@@ -47,19 +54,19 @@ class NetCDFInterface:
                     raise Exception("Error : slice must have positive length")
 
                 if self.isPeriodic[i]: # if dim is periodic set key.start into shape bounds
-                    t = self.shape[i] * (key.start // self.shape[i])
+                    t = self.data.shape[i] * (key.start // self.data.shape[i])
                     checkedKeys.append(slice(key.start - t, key.stop - t, key.step))
                 else:
-                    if key.start < 0 or key.start > self.shape[i]:
+                    if key.start < 0 or key.start > self.data.shape[i]:
                         raise Exception("Error : index not inside shape")
-                    if key.stop < 0 or key.stop > self.shape[i]:
+                    if key.stop < 0 or key.stop > self.data.shape[i]:
                         raise Exception("Error : index not inside shape")
                     checkedKeys.append(key)
             else:
                 if self.isPeriodic[i]:
-                    key = key - self.shape[i] * (key // self.shape[i])
+                    key = key - self.data.shape[i] * (key // self.data.shape[i])
                 else:
-                    if key < 0 or key > self.shape[i]:
+                    if key < 0 or key > self.data.shape[i]:
                         raise Exception("Error : index not inside shape")
                 checkedKeys.append(slice(key, key + 1, None))
 
@@ -71,7 +78,7 @@ class NetCDFInterface:
             for tu in tuples[0]:
                 out.append((tu,))
         else:
-            others = NetCDFInterface.expandTuples(tuples[1:])
+            others = PeriodicContainer.expandTuples(tuples[1:])
             for tu0 in tuples[0]:
                 for tu1 in others:
                     out.append((tu0,) + tu1)
@@ -85,7 +92,7 @@ class NetCDFInterface:
 
         readTuples  = []
         writeTuples = []
-        for key, readDimLen, writeDimLen in zip(keys, self.shape, self.outputShape):
+        for key, readDimLen, writeDimLen in zip(keys, self.data.shape, self.outputShape):
 
             Ntuples = 1 + (key.stop - 1) // readDimLen
             print(Ntuples, key, readDimLen, writeDimLen)
@@ -109,25 +116,14 @@ class NetCDFInterface:
             print("--- ", rtuples)
             print("--- ", wtuples)
         
-        self.readTuples = NetCDFInterface.expandTuples(readTuples)
-        self.writeTuples = NetCDFInterface.expandTuples(writeTuples)
+        self.readTuples  = PeriodicContainer.expandTuples(readTuples)
+        self.writeTuples = PeriodicContainer.expandTuples(writeTuples)
 
         print("Tuples len  : ", len(readTuples))
         for rtu, wtu in zip(self.readTuples, self.writeTuples):
             print("r : ", rtu)
             print("w : ", wtu)
         
-
-    def __getitem__(self, keys):
-    
-        self.compute_read_write_tuples(self.format_keys(keys))
-        res = np.empty(self.outputShape)
-        print(res.shape)
-
-        for readIndex, writeIndex in zip(self.readTuples, self.writeTuples):
-            print("Read index  :", readIndex)
-            print("Write index :", writeIndex, "\n")
-            res[writeIndex] = self.varData[list(readIndex)]
 
 
 

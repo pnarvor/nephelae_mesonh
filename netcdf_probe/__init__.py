@@ -1,1 +1,2 @@
-from .netcdf_interface import NetCDFInterface
+from .PeriodicContainer import PeriodicContainer
+from .NetCDFInterface   import NetCDFInterface

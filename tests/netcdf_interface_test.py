@@ -2,26 +2,21 @@
 
 import sys
 sys.path.append('../')
-
 import numpy as np
+import matplotlib.pyplot as plt
+
 from netCDF4 import MFDataset
 import netcdf_probe as cdf
-
 
 mesonhFiles = sys.argv[slice(1,len(sys.argv))]
 atm = MFDataset(mesonhFiles)
 
-# netcdf = cdf.NetCDFInterface(atm, 'RCT', periodicVariables=['S_N_direction'])
-netcdf = cdf.NetCDFInterface(atm, 'RCT', periodicVariables=['S_N_direction', 'W_E_direction'])
+data = cdf.PeriodicContainer(cdf.NetCDFInterface(atm, 'RCT'), [2,3])
+image = np.squeeze(data[0,80,0:400,0:400])
 
-# array = netcdf[26,160,400,500:200]
-netcdf[26,160,10:500,200:1200]
-# netcdf[26,160,480,-1:60]
-# print("Shape : ", array.shape)
+implot = plt.imshow(image, cmap='viridis')
+
+plt.show(block=False)
 
 
-# array = np.array([[1,2],[3,4]])
-# print(array)
-# print(array.shape)
-# print(tuple([2,2]))
 
