@@ -11,6 +11,11 @@ import matplotlib.cm as cm
 from netCDF4 import MFDataset
 import netcdf_probe as cdf
 
+"""
+Test file for PeriodicContainer and NetCDFInterface types
+    - Arguments : MesoNH (netcdf) files to open
+"""
+
 mesonhFiles = sys.argv[slice(1,len(sys.argv))]
 atm = MFDataset(mesonhFiles)
 print('MesoNH opened')
