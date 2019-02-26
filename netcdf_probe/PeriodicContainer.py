@@ -16,21 +16,25 @@ class PeriodicContainer:
 
         self.data = data
         self.shape = self.data.shape # not used in this class, inly for convenience
+        self.periodicShape = list(self.data.shape) # -1 on periodic dimensions
         self.isPeriodic = np.array([False]*len(self.data.shape))
         for i in periodicDimension:
             self.isPeriodic[i] = True
+            self.periodicShape[i] = -1
+        self.periodicShape = tuple(self.periodicShape)
         self.outputShape = ()
         self.readTuples = []
         self.writeTuples = []
 
     def __getitem__(self, keys):
-    
-        self.compute_read_write_tuples(self.format_keys(keys))
+        """
+        Implementation of operator []
+        """
+        self.__compute_read_write_tuples(self.__format_keys(keys))
         return self.get(self.outputShape, self.readTuples, self.writeTuples)
 
 
     def get(self, outputShape, readTuples, writeTuples):
-
         """
         get : data getter separated from __getitem__ to be able to read data using tuples from another PeriodicContainer for efficiency
         """
@@ -39,7 +43,8 @@ class PeriodicContainer:
             res[writeIndex] = self.data[list(readIndex)]
         return res
 
-    def format_keys(self, keys):
+    # private functions (for internal use only) #############################
+    def __format_keys(self, keys):
         checkedKeys = []
         for i, key in enumerate(keys):
 
@@ -76,19 +81,19 @@ class PeriodicContainer:
 
         return tuple(checkedKeys)
 
-    def expandTuples(tuples):
+    def __expandTuples(tuples):
         out = []
         if len(tuples) <=  1:
             for tu in tuples[0]:
                 out.append((tu,))
         else:
-            others = PeriodicContainer.expandTuples(tuples[1:])
+            others = PeriodicContainer.__expandTuples(tuples[1:])
             for tu0 in tuples[0]:
                 for tu1 in others:
                     out.append((tu0,) + tu1)
         return out
 
-    def compute_read_write_tuples(self, keys):
+    def __compute_read_write_tuples(self, keys):
         shape = []
         for key in keys:
             shape.append(key.stop - key.start)
@@ -116,8 +121,8 @@ class PeriodicContainer:
             readTuples.append(rtuples)
             writeTuples.append(wtuples)
         
-        self.readTuples  = PeriodicContainer.expandTuples(readTuples)
-        self.writeTuples = PeriodicContainer.expandTuples(writeTuples)
+        self.readTuples  = PeriodicContainer.__expandTuples(readTuples)
+        self.writeTuples = PeriodicContainer.__expandTuples(writeTuples)
         
 
 
