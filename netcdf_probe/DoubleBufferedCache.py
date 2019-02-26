@@ -1,5 +1,6 @@
 import threading as th
 import numpy as np
+import time
 
 class DoubleBufferedCache(th.Thread):
 
@@ -25,7 +26,7 @@ class DoubleBufferedCache(th.Thread):
         """
       
         # initialsation of base threading class
-        super(DoubleBuffered, self).__init__(name="DoubleBufferedCache-{}".format(id(self)))
+        super(DoubleBufferedCache, self).__init__(name="DoubleBufferedCache-{}".format(id(self)))
 
         self.data       = data
         self.shape      = data.shape
@@ -34,15 +35,6 @@ class DoubleBufferedCache(th.Thread):
         self.loadKeys   = ()
         self.loadLock   = th.Lock()
         self.workLock   = th.Lock()
-
-    def load(self, keys):
-        
-        if not self.loadLock.acquire(blocking=False):
-            print("Loading still in progress : cannot call load function")
-            return
-        self.loadKeys = keys
-        self.start()
-        self.loadLock.release() # release lock, is locked again un thread(run)
 
     def __getitem__(self, keys):
 
@@ -69,6 +61,30 @@ class DoubleBufferedCache(th.Thread):
         self.workLock.release()
         return res
 
+    def load(self, keys, blocking=False):
+
+        """
+        Request load of data into workBuffer:
+            - Load array part indexed by keys
+            - Can be synchronous (blocking=True) or asynchrounous (blocking=False)
+        """
+        
+        print("Load requested : ", keys)
+        if blocking:
+            if not self.loadLock.acquire(blocking=False):
+                print("Loading still in progress : cannot call load function")
+                return
+            self.loadKeys = keys
+            self.loadLock.release() # release lock, is locked again in self.run()
+            self.run()              # if blocking, not spawning a thread to load data
+        else:
+            if not self.loadLock.acquire(blocking=False):
+                print("Loading still in progress : cannot call load function")
+                return
+            self.loadKeys = keys
+            self.start()
+            self.loadLock.release() # release lock, is locked again in self.run()
+
     # private member functions ###################################
     def run(self):
 
@@ -76,7 +92,8 @@ class DoubleBufferedCache(th.Thread):
         Perform asynchronous loading of self.data
             - Will be called by self.load() in a new thread
         """
-
+        print("Load process started")
+        print("-- keys : ", self.loadKeys)
         if not self.loadLock.acquire(timeout=3):
             raise Exception("Error : could not lock loadingLock, aborting !")
 
@@ -90,17 +107,18 @@ class DoubleBufferedCache(th.Thread):
                     newOrigin.append(key.start)
             else:
                 newOrigin.append(key)
-
+       
+        # Data is loaded in newBuffer, updating workBuffer
         if not self.workLock.acquire(timeout = 3):
             loadLock.release()
             raise Exception("Could not update workBuffer : could not lock")
 
-        # updating workBuffer 
-        workBuffer = newBuffer
-        workOrigin = newOrigin
+        self.workBuffer = newBuffer
+        self.workOrigin = newOrigin
 
         self.workLock.release()
         self.loadLock.release()
+        print("Load process finished")
 
 
 
