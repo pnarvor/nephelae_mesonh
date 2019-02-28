@@ -29,9 +29,16 @@ else:
     if not os.path.isdir("output"):
         raise Exception("Cannot use ./output directory. path exist and is not a directory.")
 
-for t in range(data.shape[0]):
-    image = np.squeeze(data[t,80,0:800,0:800])
-    imageio.imwrite("output/" + str(t).zfill(3) + ".png", cm.viridis(image / np.amax(image))[:,:,0:3])
+# for t in range(data.shape[0]):
+for z in range(data.shape[1]):
+    t = z
+
+    image = np.squeeze(data[70,z,0:256,0:256])
+    # image = np.squeeze(data[t,50,0:,0:400])
+
+    print("Max RCT value : ", np.amax(image))
+    # imageio.imwrite("output/" + str(t).zfill(3) + ".png", cm.viridis(image / np.amax(image))[:,:,0:3])
+    imageio.imwrite("output/" + str(t).zfill(3) + ".png", cm.viridis(np.flip(image,0) / 0.0010505)[:,:,0:3])
     print(str(t).zfill(3) + ".png written)")
 
 # Display is crashing when using heavy mesonh files

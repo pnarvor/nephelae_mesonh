@@ -26,12 +26,13 @@ class DoubleBufferedCache(th.Thread):
         """
       
         # initialsation of base threading class
-        super(DoubleBufferedCache, self).__init__(name="DoubleBufferedCache-{}".format(id(self)))
+        super(DoubleBufferedCache, self).__init__(
+            name="DoubleBufferedCache-{}".format(id(self)))
 
         self.data       = data
         self.shape      = data.shape
-        self.workBuffer = np.array([])
-        self.workOrigin = []
+        self.buffer = np.array([])
+        self.bufferOrigin = []
         self.loadKeys   = ()
         self.loadLock   = th.Lock()
         self.workLock   = th.Lock()
@@ -72,15 +73,13 @@ class DoubleBufferedCache(th.Thread):
         print("Load requested : ", keys)
         if blocking:
             if not self.loadLock.acquire(blocking=False):
-                print("Loading still in progress : cannot call load function")
-                return
+                raise Exception("Loading still in progress : cannot call load function")
             self.loadKeys = keys
             self.loadLock.release() # release lock, is locked again in self.run()
             self.run()              # if blocking, not spawning a thread to load data
         else:
             if not self.loadLock.acquire(blocking=False):
-                print("Loading still in progress : cannot call load function")
-                return
+                raise Exception("Loading still in progress : cannot call load function")
             self.loadKeys = keys
             self.start()
             self.loadLock.release() # release lock, is locked again in self.run()
@@ -113,8 +112,9 @@ class DoubleBufferedCache(th.Thread):
             loadLock.release()
             raise Exception("Could not update workBuffer : could not lock")
 
-        self.workBuffer = newBuffer
-        self.workOrigin = newOrigin
+        self.buffer = newBuffer
+        self.bufferOrigin = newOrigin
+        self.lastKeys = self.loadKeys
 
         self.workLock.release()
         self.loadLock.release()
