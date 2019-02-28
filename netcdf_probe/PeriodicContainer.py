@@ -38,6 +38,10 @@ class PeriodicContainer:
         """
         get : data getter separated from __getitem__ to be able to read data using tuples from another PeriodicContainer for efficiency
         """
+        print("outputShape : ", outputShape)
+        print("readTuples  : ", readTuples)
+        print("writeTuples : ", writeTuples)
+
         res = np.empty(outputShape)
         for readIndex, writeIndex in zip(readTuples, writeTuples):
             res[writeIndex] = self.data[list(readIndex)]
@@ -81,18 +85,6 @@ class PeriodicContainer:
 
         return tuple(checkedKeys)
 
-    def __expandTuples(tuples):
-        out = []
-        if len(tuples) <=  1:
-            for tu in tuples[0]:
-                out.append((tu,))
-        else:
-            others = PeriodicContainer.__expandTuples(tuples[1:])
-            for tu0 in tuples[0]:
-                for tu1 in others:
-                    out.append((tu0,) + tu1)
-        return out
-
     def __compute_read_write_tuples(self, keys):
         shape = []
         for key in keys:
@@ -124,6 +116,17 @@ class PeriodicContainer:
         self.readTuples  = PeriodicContainer.__expandTuples(readTuples)
         self.writeTuples = PeriodicContainer.__expandTuples(writeTuples)
         
+    def __expandTuples(tuples):
+        out = []
+        if len(tuples) <=  1:
+            for tu in tuples[0]:
+                out.append((tu,))
+        else:
+            others = PeriodicContainer.__expandTuples(tuples[1:])
+            for tu0 in tuples[0]:
+                for tu1 in others:
+                    out.append((tu0,) + tu1)
+        return out
 
 
 
