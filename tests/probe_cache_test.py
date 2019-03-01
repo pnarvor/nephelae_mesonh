@@ -23,12 +23,18 @@ print('MesoNH opened')
 
 
 
-data = cdf.ProbeCache(cdf.PeriodicContainer(cdf.NetCDFInterface(atm, 'RCT'), [2,3]), (3,5,5,21), initPosition=[10,50,200,200])
+data = cdf.ProbeCache(cdf.PeriodicContainer(cdf.NetCDFInterface(atm, 'RCT'), [2,3]), (20,30,30,30), initPosition=[10,50,200,200])
 # data.update_cache([10,50,100,100], blocking=True)
 
+time.sleep(1)
+
+# i = 0
+# print(data[10, 50, 200:203, (200 + 3*i):(203 + 3*i)])
+
 for i in range(35):
-    print(data[10, 50, 200, 200 + i])
-    time.sleep(0.1)
+#     print((data[10, 50, 200:203, (200 + 3*i):(203 + 3*i)]).shape)
+    print(data[10 + i, 50, 200:203, (200 + 3*i):(203 + 3*i)])
+    time.sleep(0.2)
 
 
 

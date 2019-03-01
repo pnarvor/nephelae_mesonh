@@ -48,10 +48,28 @@ class DoubleBufferedCache(th.Thread):
 
         self.start()
 
+    def inBuffer(self, keys):
+        
+        for key, size in zip(keys, self.buffer.shape):
+            if isinstance(key, slice):
+                if key.start is not None and key.start < 0:
+                    return False
+                if key.stop is not None and key.stop > size:
+                    return False
+            else:
+                if not (0 <= key < size):
+                    return False
+
+        return True
+
     def __getitem__(self, keys):
 
         # Generating keys to read in workBuffer as if in reading in self.data
-        newKeys = []
+        newKeys = ()
+        res = [] 
+        if not self.bufferLock.acquire(timeout = 3):
+            raise Exception("Could read workBuffer : could not lock")
+
         for key, origin in zip(keys,self.bufferOrigin):
             if isinstance(key, slice):
                 if key.start is None:
@@ -61,26 +79,37 @@ class DoubleBufferedCache(th.Thread):
                 if key.stop is None:
                     key_stop = 0 - origin
                 else:
-                    key_stop = key.stop - originA
-                newKeys.append(slice(key_start, key_stop, None))
+                    key_stop = key.stop - origin
+                newKeys = newKeys + (slice(key_start, key_stop, None),)
             else:
-                newKeys.append(key - origin)
+                newKeys = newKeys + (key - origin,)
         
-        return self.get(newKeys)
+        # print("Checking keys :")
+        # print("Keys  : ", keys)
+        # print("Keys  : ", newKeys)
+        # print("Shape : ", self.buffer.shape)
+        if not self.inBuffer(newKeys):
+            return []
+
+        try:
+            res = self.buffer[newKeys]
+        except:
+            res = []
+        self.bufferLock.release()
+        return res
 
     def get(self, keys):
         
         # keys assumed to be inside buffer shape
+        res = [] 
         if not self.bufferLock.acquire(timeout = 3):
             raise Exception("Could read workBuffer : could not lock")
         try:
             res = self.buffer[tuple(keys)]
-        except Exception as error:
-            print(error)
-            res = [] 
+        except:
+            res = []
         self.bufferLock.release()
         return res
-
 
     def load(self, keys, blocking=False):
 
@@ -93,14 +122,14 @@ class DoubleBufferedCache(th.Thread):
         if not self.isAlive():
             raise Exception("Error : loading thread is not alive.")
 
-        print("Load requested : ", keys)
+        # print("Load requested : ", keys)
         self.loadRequestWaiter.acquire()
-        print("Main thread : Got lock")
+        # print("Main thread : Got lock")
         self.loadKeys = keys
         self.mustLoad = True
         self.loadRequestWaiter.notify()
         self.loadRequestWaiter.release()
-        print("Main thread : released lock")
+        # print("Main thread : released lock")
 
         if blocking:
             self.loadRequestWaiter.acquire()
@@ -108,41 +137,32 @@ class DoubleBufferedCache(th.Thread):
                 self.loadRequestWaiter.wait()
             self.loadRequestWaiter.release()
 
-        # if blocking:
-        #     if not self.loadLock.acquire(blocking=False):
-        #         raise Exception("Loading still in progress : cannot call load function")
-        #     self.loadKeys = keys
-        #     self.loadLock.release() # release lock, is locked again in self.run()
-        #     self.run()              # if blocking, not spawning a thread to load data
-        # else:
-        #     if not self.loadLock.acquire(blocking=False):
-        #         raise Exception("Loading still in progress : cannot call load function")
-        #     self.loadKeys = keys
-        #     self.start()
-        #     self.loadLock.release() # release lock, is locked again in self.run()
-
     # private member functions ###################################
     def run(self):
 
         """
         Perform asynchronous loading of self.data
-            - Will be called by self.load() in a new thread
+            - Started on the constructor, wait for load requests
         """
-       
-        print("Loading thread started")
+        
+        loadCount = 0;
+        # print("Loading thread started")
         self.running = True
         while self.running:
             
             self.loadRequestWaiter.acquire()
             while not self.mustLoad:
-                print("Loading thread waiting...")
+                # print("    ", loadCount, " - Loading thread waiting...")
                 self.loadRequestWaiter.wait()
             if not self.running:
                 self.loadRequestWaiter.release()
                 break
 
-            print("Load process started")
-            print("-- keys : ", self.loadKeys)
+            # print("    ", loadCount, " - Load process started")
+            # print("    ", loadCount,"-- keys               : ", self.loadKeys)
+            # print("    ", loadCount,"-- last keys          : ", self.lastKeys)
+            # print("    ", loadCount,"-- last buffer shape  : ", self.buffer.shape)
+            # print("    ", loadCount,"-- last buffer origin : ", self.bufferOrigin)
 
             newBuffer = self.data[self.loadKeys]
             newOrigin = []
@@ -166,10 +186,15 @@ class DoubleBufferedCache(th.Thread):
             self.lastKeys = self.loadKeys
             self.bufferLock.release()
 
+            # print("    ", loadCount, "-- next keys          : ", self.lastKeys)
+            # print("    ", loadCount, "-- next buffer shape  : ", self.buffer.shape)
+            # print("    ", loadCount, "-- next buffer origin : ", self.bufferOrigin)
+
             self.mustLoad = False
             self.loadRequestWaiter.notify()
             self.loadRequestWaiter.release()
-            print("Load process finished")
+            # print("    ", loadCount, " - Load process finished")
+            loadCount += 1
 
 
 

@@ -38,9 +38,9 @@ class PeriodicContainer:
         """
         get : data getter separated from __getitem__ to be able to read data using tuples from another PeriodicContainer for efficiency
         """
-        print("outputShape : ", outputShape)
-        print("readTuples  : ", readTuples)
-        print("writeTuples : ", writeTuples)
+        # print("outputShape : ", outputShape)
+        # print("readTuples  : ", readTuples)
+        # print("writeTuples : ", writeTuples)
 
         res = np.empty(outputShape)
         for readIndex, writeIndex in zip(readTuples, writeTuples):
