@@ -1,4 +1,4 @@
-
+import threading as th
 
 class NetCDFInterface:
 
@@ -22,6 +22,14 @@ class NetCDFInterface:
         for dim in self.varData.dimensions:
             shape.append(len(self.netcdfData.dimensions[dim]))
         self.shape = tuple(shape)
+        self.dataMutex = th.Lock()
+
 
     def __getitem__(self, keys):
-        return self.varData[keys]
+        
+        res = []
+        self.dataMutex.acquire()
+        res = self.varData[keys]
+        self.dataMutex.release()
+
+        return res
