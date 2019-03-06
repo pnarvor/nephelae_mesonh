@@ -6,6 +6,8 @@ class NetCDFInterface:
     This class is a helper interface to access netCDF data in a numpy-like fashion
     """
 
+    dataMutex = th.Lock()
+
     def __init__(self, netcdfData, netcdfVariable):
 
         """
@@ -22,14 +24,12 @@ class NetCDFInterface:
         for dim in self.varData.dimensions:
             shape.append(len(self.netcdfData.dimensions[dim]))
         self.shape = tuple(shape)
-        self.dataMutex = th.Lock()
-
 
     def __getitem__(self, keys):
         
         res = []
-        self.dataMutex.acquire()
+        NetCDFInterface.dataMutex.acquire()
         res = self.varData[keys]
-        self.dataMutex.release()
+        NetCDFInterface.dataMutex.release()
 
         return res
