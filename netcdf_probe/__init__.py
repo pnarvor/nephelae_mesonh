@@ -6,3 +6,4 @@ from .ProbeCache            import ProbeCache
 from .MesoNHVariable        import MesoNHVariable
 from .MesoNHDimensionHelper import MesoNHDimensionHelper
 from .MesoNHProbe           import MesoNHProbe
+from .MultiCache             import MultiCache
