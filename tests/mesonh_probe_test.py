@@ -20,20 +20,17 @@ test file for periodiccontainer and netcdfinterface types
 mesonhfiles = sys.argv[slice(1,len(sys.argv))]
 atm = MFDataset(mesonhfiles)
 
-# probe = cdf.MesoNHProbe(atm, ['RCT', 'THT', 'UT', 'VT', 'WT'], [10,20,40,40], initPosition=[200,80,200,200])
-probe = cdf.MesoNHProbe(atm, ['RCT', 'THT'], [10,20,40,40], initPosition=[200,80,200,200])
-# probe = cdf.MesoNHProbe(atm, ['RCT', 'WT'], [20,20,40,40], initPosition=[10,20,20,20])
-# probe = cdf.MesoNHProbe(atm, ['RCT'], [10,20,20,20], initPosition=[10,20,20,20])
+probe = cdf.MesoNHProbe(atm, ['RCT','WT'])
+# cache = cdf.MultiCache([cdf.MesoNHVariable(atm, 'RCT'), cdf.MesoNHVariable(atm, 'WT')])
+cache = probe.getCache()
+cache.load(cdf.Fancy()[10,0:160,128,0:300], blocking=True)
 
-lastTime = time.time()
-for i in range(300):
-    # print(probe[10,20,20,20 + i],"\n\n\n")
-    tmp = probe[200 + i,80,200+i,200 + 2*i]
-    # print(tmp,"\n")
-    time.sleep(0.5)
-    nextTime = time.time()
-    print("Ellapsed : ", nextTime - lastTime)
-    lastTime = nextTime
+image0 = np.flip(np.squeeze(cache.buffers[0]), 0)
+image1 = np.flip(np.squeeze(cache.buffers[1]), 0)
+
+# plt.imshow(image0, cmap='viridis')
+plt.imshow(image1, cmap='viridis')
+plt.show(block=False)
 
 
 
