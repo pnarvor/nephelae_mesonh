@@ -8,4 +8,4 @@ from .MultiCache            import MultiCache
 from .BiDirectionalLUT      import BiDirectionalLUT
 from .BiDirectionalLinear   import BiDirectionalLinear
 from .MesoNHDimensionHelper import MesoNHDimensionHelper
-# from .MesoNHProbe           import MesoNHProbe
+from .MesoNHProbe           import MesoNHProbe
