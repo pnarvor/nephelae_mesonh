@@ -25,8 +25,8 @@ class BiDirectionalLinear:
         self.toInputAlpha = (p2[0] - p1[0]) / (p2[1] - p1[1])
         self.toInputBeta  = p1[0] - self.toOutputAlpha * p1[1]
 
-    def toOutputSpace(self, data):
-        return self.toOutputAlpha * data + self.toOutputBeta
+    def to_output_space(self, data):
+        return self.toOutputAlpha * np.array(data) + self.toOutputBeta
 
-    def toInputSpace(self, data):
-        return self.toInputAlpha * data + self.toInputBeta
+    def to_input_space(self, data):
+        return self.toInputAlpha * np.array(data) + self.toInputBeta

@@ -21,6 +21,6 @@ mesonhfiles = sys.argv[slice(1,len(sys.argv))]
 atm = MFDataset(mesonhfiles)
 
 dims = cdf.MesoNHDimensionHelper(atm)
-print(dims[10.0,2.0,0.005,2.0])
-
-
+print(dims.to_units(cdf.Fancy()[0:144,0:161,0:400,0:400]))
+print(dims.to_units(cdf.Fancy()[0:144,0:161,0:750,0:750]))
+print(dims.to_indexes(cdf.Fancy()[77999418:77999512,0.5:2.5,-2.5:7.5,0.5:2.5]))

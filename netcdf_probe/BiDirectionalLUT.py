@@ -27,9 +27,9 @@ class BiDirectionalLUT:
         self.toInputInterpolator = RegularGridInterpolator((inputToOutput,),
                                                            x_in)
 
-    def toOutputSpace(self, data):
+    def to_output_space(self, data):
         return self.toOutputInterpolator(data)
 
-    def toInputSpace(self, data):
+    def to_input_space(self, data):
         return self.toInputInterpolator(data)
 

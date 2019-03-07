@@ -25,14 +25,14 @@ lin = cdf.BiDirectionalLinear(atm.variables['S_N_direction'][:])
 
 plot1, axes1 = plt.subplots(1,2)
 x = np.linspace(0,160,1000)
-axes1[0].plot(x, lut.toOutputSpace(np.linspace(0,160,1000)))
+axes1[0].plot(x, lut.to_output_space(np.linspace(0,160,1000)))
 x = np.linspace(0.005,3.95,1000)
-axes1[1].plot(x, lut.toInputSpace(np.linspace(0.005,3.95,1000)))
+axes1[1].plot(x, lut.to_input_space(np.linspace(0.005,3.95,1000)))
 
 plot1, axes1 = plt.subplots(1,2)
 x = np.linspace(0,160,1000)
-axes1[0].plot(x, lin.toOutputSpace(np.linspace(0,700,1000)))
+axes1[0].plot(x, lin.to_output_space(np.linspace(0,700,1000)))
 x = np.linspace(0.005,3.95,1000)
-axes1[1].plot(x, lin.toInputSpace(np.linspace(-1,5,1000)))
+axes1[1].plot(x, lin.to_input_space(np.linspace(-1,5,1000)))
 
 plt.show(block=False)
