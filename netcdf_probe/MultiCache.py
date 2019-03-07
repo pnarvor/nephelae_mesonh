@@ -70,6 +70,7 @@ class MultiCache(th.Thread):
         self.__loadLock      = th.Condition()
         self.__loadRequested = False
         self.__loadKeys      = ()
+        self.__lastLoadKeys  = ()
         self.__bufferOrigin  = []
 
         self.start()
@@ -132,6 +133,9 @@ class MultiCache(th.Thread):
                 break
 
     def __doLoad(self, keys):
+
+        if keys == self.__lastLoadKeys:
+            return
        
         # perfom load from self.data
         outputs = []
@@ -154,4 +158,6 @@ class MultiCache(th.Thread):
         self.bufferLims = keys
         self.__bufferOrigin = bufferOrigin
         self.__bufferLock.release()
+
+        self.__lastLoadKeys = keys
 
