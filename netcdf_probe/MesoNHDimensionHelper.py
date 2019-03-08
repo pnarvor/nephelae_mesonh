@@ -17,14 +17,14 @@ def clip_key(key, dimLen):
             key_stop = dimLen
         else:
             key_stop = key.stop
-        return slice(key_start, key_stop, key.step)
+        return slice(int(key_start), int(key_stop), None)
     else:
         if key < 0:
             return 0
         elif key >= dimLen:
             return dimLen - 1
         else:
-            return key
+            return int(key)
 
 def clip_unit(key, unitMin, unitMax):
     if isinstance(key, slice):
@@ -105,62 +105,69 @@ class MesoNHDimensionHelper:
             tmp = self.converter_t.to_output_space([key.start, key.stop - 1])
             return slice(tmp[0], tmp[1], None)
         else:
-            return self.converter_t.to_output_space([key])
+            return float(self.converter_t.to_output_space([key]))
 
     def to_index_t(self, key):
         if isinstance(key, slice):
             tmp = np.floor(self.converter_t.to_input_space([key.start, key.stop])).astype(int)
             return slice(tmp[0], tmp[1] + 1, None)
         else:
-            return self.converter_t.to_input_space([key])
+            return float(self.converter_t.to_input_space([key]))
         
     def to_unit_z(self, key):
         if isinstance(key, slice):
             tmp = self.converter_z.to_output_space([key.start, key.stop - 1])
             return slice(tmp[0], tmp[1], None)
         else:
-            return self.converter_z.to_output_space([key])
+            return float(self.converter_z.to_output_space([key]))
 
     def to_index_z(self, key):
         if isinstance(key, slice):
             tmp = np.floor(self.converter_z.to_input_space([key.start, key.stop])).astype(int)
             return slice(tmp[0], tmp[1] + 1, None)
         else:
-            return self.converter_z.to_input_space([key])
+            return float(self.converter_z.to_input_space([key]))
         
     def to_unit_x(self, key):
         if isinstance(key, slice):
             tmp = self.converter_x.to_output_space([key.start, key.stop - 1])
             return slice(tmp[0], tmp[1], None)
         else:
-            return self.converter_x.to_output_space([key])
+            return float(self.converter_x.to_output_space([key]))
 
     def to_index_x(self, key):
         if isinstance(key, slice):
             tmp = np.floor(self.converter_x.to_input_space([key.start, key.stop])).astype(int)
             return slice(tmp[0], tmp[1] + 1, None)
         else:
-            return self.converter_x.to_input_space([key])
+            return float(self.converter_x.to_input_space([key]))
         
     def to_unit_y(self, key):
         if isinstance(key, slice):
             tmp = self.converter_y.to_output_space([key.start, key.stop - 1])
             return slice(tmp[0], tmp[1], None)
         else:
-            return self.converter_y.to_output_space([key])
+            return float(self.converter_y.to_output_space([key]))
 
     def to_index_y(self, key):
         if isinstance(key, slice):
             tmp = np.floor(self.converter_y.to_input_space([key.start, key.stop])).astype(int)
             return slice(tmp[0], tmp[1] + 1, None)
         else:
-            return self.converter_y.to_input_space([key])
+            return float(self.converter_y.to_input_space([key]))
 
     def clip_keys(self, keys):
         # keys 2 and 3 are not clipped due to periodicity of x.y dims
         res = (clip_key(keys[0], self.atmShape[0]),
-               clip_key(keys[1], self.atmShape[1]),
-               keys[2], keys[3],)
+               clip_key(keys[1], self.atmShape[1]),)
+        if isinstance(keys[2], slice):
+            res = res + (slice(int(keys[2].start), int(keys[2].stop), None),)
+        else:
+            res = res + (int(keys[2]),)
+        if isinstance(keys[3], slice):
+            res = res + (slice(int(keys[3].start), int(keys[3].stop), None),)
+        else:
+            res = res + (int(keys[3]),)
         return res
 
     def clip_units(self, keys):
