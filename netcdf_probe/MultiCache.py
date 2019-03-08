@@ -87,6 +87,14 @@ class MultiCache(th.Thread):
         self.__bufferLock.release()
         return res
 
+    def set_user_data(self, data):
+
+        # print("Setting user data : ", data)
+        self.__bufferLock.acquire()
+        self.__dataToUpdate = data
+        self.__bufferLock.release()
+        # print("Set user data : ", self.__dataToUpdate)
+
     def __getitem__(self, keys):
 
         self.__bufferLock.acquire()
@@ -110,8 +118,10 @@ class MultiCache(th.Thread):
     def load(self, keys, blocking=False, dataToUpdate=()):
         if not self.__loadLock.acquire(blocking=blocking):
             raise Exception("MultiCache.load() : Could not lock __loadLock, aborting")
+        
+        if dataToUpdate:
+            self.__dataToUpdate = dataToUpdate
 
-        self.__dataToUpdate = dataToUpdate
         if blocking:
             self.__doLoad(keys)
         else:
