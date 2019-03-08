@@ -73,12 +73,17 @@ class MultiCache(th.Thread):
         self.__lastLoadKeys  = ()
         self.__bufferOrigin  = []
 
+        # data reserved for the user
+        # to be updated at the same time as the buffers
+        self.__dataToUpdate  = ()
+        self.__updatedData   = ()
+
         self.start()
 
-    def get_buffer_origin(self):
+    def get_user_data(self):
 
         self.__bufferLock.acquire()
-        res = self.__bufferOrigin
+        res = self.__updatedData
         self.__bufferLock.release()
         return res
 
@@ -102,9 +107,11 @@ class MultiCache(th.Thread):
 
         return res
 
-    def load(self, keys, blocking=False):
+    def load(self, keys, blocking=False, dataToUpdate=()):
         if not self.__loadLock.acquire(blocking=blocking):
             raise Exception("MultiCache.load() : Could not lock __loadLock, aborting")
+
+        self.__dataToUpdate = dataToUpdate
         if blocking:
             self.__doLoad(keys)
         else:
@@ -143,7 +150,8 @@ class MultiCache(th.Thread):
 
         if keys == self.__lastLoadKeys:
             return
-       
+        
+        print("Loading in progress ------------------------")
         # perfom load from self.data
         outputs = []
         for array in self.data:
@@ -164,7 +172,10 @@ class MultiCache(th.Thread):
             self.buffers.append(out)
         self.bufferLims = keys
         self.__bufferOrigin = bufferOrigin
+        self.__updatedData = self.__dataToUpdate
         self.__bufferLock.release()
 
         self.__lastLoadKeys = keys
+
+        print("Load finished ! ------------------------")
 
