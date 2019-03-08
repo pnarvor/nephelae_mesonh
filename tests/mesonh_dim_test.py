@@ -19,6 +19,9 @@ test file for periodiccontainer and netcdfinterface types
 
 mesonhfiles = sys.argv[slice(1,len(sys.argv))]
 atm = MFDataset(mesonhfiles)
+print("MesoNH loaded !")
+
+
 
 dims = cdf.MesoNHDimensionHelper(atm)
 print(dims.to_units(cdf.Fancy()[1,0:161,0:400,0:400]))

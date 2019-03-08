@@ -19,17 +19,19 @@ test file for periodiccontainer and netcdfinterface types
 
 mesonhfiles = sys.argv[slice(1,len(sys.argv))]
 atm = MFDataset(mesonhfiles)
+print("MesoNH loaded !")
 
 probe = cdf.MesoNHProbe(atm, ['RCT','WT'])
 
 position = cdf.Fancy()[probe.t0,0.01,0,0]
-v = 0.025
+# v = 0.025
+v = 0.020
 # dt = 1.0
 dt = 0.1
 
 probe.update_cache(position, blocking=True)
 
-for i in range(100):
+for i in range(1000):
     print(position, " : ", probe[position])
     # newPos = ()
     # for p in position:
