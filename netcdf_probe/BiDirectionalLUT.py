@@ -21,11 +21,11 @@ class BiDirectionalLUT:
         x_in = np.linspace(self.inputRange[0],
                            self.inputRange[1],
                            len(inputToOutput))
-
-        self.toOutputInterpolator = RegularGridInterpolator((x_in,),
-                                                            inputToOutput)
-        self.toInputInterpolator = RegularGridInterpolator((inputToOutput,),
-                                                           x_in)
+        
+        self.toOutputInterpolator = \
+            RegularGridInterpolator((x_in,), inputToOutput)
+        self.toInputInterpolator = \
+            RegularGridInterpolator((inputToOutput,), x_in)
 
     def to_output_space(self, data):
         return self.toOutputInterpolator(data)
