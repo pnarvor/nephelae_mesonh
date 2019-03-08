@@ -21,16 +21,28 @@ mesonhfiles = sys.argv[slice(1,len(sys.argv))]
 atm = MFDataset(mesonhfiles)
 
 probe = cdf.MesoNHProbe(atm, ['RCT','WT'])
-# cache = cdf.MultiCache([cdf.MesoNHVariable(atm, 'RCT'), cdf.MesoNHVariable(atm, 'WT')])
-cache = probe.getCache()
-cache.load(cdf.Fancy()[10,0:160,128,0:300], blocking=True)
 
-image0 = np.flip(np.squeeze(cache.buffers[0]), 0)
-image1 = np.flip(np.squeeze(cache.buffers[1]), 0)
+position = [probe.t0,0,0,0]
+v = 25;
+dt = 0.1
 
-# plt.imshow(image0, cmap='viridis')
-plt.imshow(image1, cmap='viridis')
-plt.show(block=False)
+probe.update_cache(cdf.Fancy()[probe.t0,0,0,0], blocking=True)
+
+for i in range(100):
+    print(probe[position])
+    position = position * v / dt
+    time.sleep(dt)
+
+# # cache = cdf.MultiCache([cdf.MesoNHVariable(atm, 'RCT'), cdf.MesoNHVariable(atm, 'WT')])
+# cache = probe.getCache()
+# cache.load(cdf.Fancy()[10,0:160,128,0:300], blocking=True)
+# 
+# image0 = np.flip(np.squeeze(cache.buffers[0]), 0)
+# image1 = np.flip(np.squeeze(cache.buffers[1]), 0)
+# 
+# # plt.imshow(image0, cmap='viridis')
+# plt.imshow(image1, cmap='viridis')
+# plt.show(block=False)
 
 
 
