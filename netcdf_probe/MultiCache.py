@@ -75,6 +75,13 @@ class MultiCache(th.Thread):
 
         self.start()
 
+    def get_buffer_origin(self):
+
+        self.__bufferLock.acquire()
+        res = self.__bufferOrigin
+        self.__bufferLock.release()
+        return res
+
     def __getitem__(self, keys):
 
         self.__bufferLock.acquire()
@@ -103,7 +110,7 @@ class MultiCache(th.Thread):
         else:
             self.__loadKeys = keys
             self.__loadRequested = True
-            self.__loadLock().notify()
+            self.__loadLock.notify()
         self.__loadLock.release()
 
     # private member functions  
@@ -144,7 +151,7 @@ class MultiCache(th.Thread):
 
         # computing new self.__bufferOrigin
         bufferOrigin = []
-        for key in self.bufferLims:
+        for key in keys:
             if isinstance(key, slice):
                 bufferOrigin.append(key.start)
             else:
