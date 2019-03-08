@@ -89,11 +89,9 @@ class MultiCache(th.Thread):
 
     def set_user_data(self, data):
 
-        # print("Setting user data : ", data)
         self.__bufferLock.acquire()
         self.__dataToUpdate = data
         self.__bufferLock.release()
-        # print("Set user data : ", self.__dataToUpdate)
 
     def __getitem__(self, keys):
 
