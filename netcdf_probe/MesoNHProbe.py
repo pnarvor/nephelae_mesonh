@@ -46,22 +46,26 @@ class MesoNHProbe:
                 self.variables.append(var)
                 tmpVarList.append(MesoNHVariable(self.__atm, var))
 
-        self.__cache            = MultiCache(tmpVarList)
-        self.__targetCacheSpan  = targetCacheSpan
-        self.__updateThreshold  = 0.5
-        self.__lastLoadPosition = np.empty([])
+        self.__cache             = MultiCache(tmpVarList)
+        self.__targetCacheSpan   = targetCacheSpan
+        self.__updateThreshold   = 0.5
+        self.__lastCachePosition = ()
 
     def check_position(self, position):
 
-        print("Checking position : ", position)
-        lastLoadPosition = self.__cache.get_buffer_origin()
-        print(" - lastLoadPosition : ", lastLoadPosition)
-        if not lastLoadPosition:
+        if not self.__lastCachePosition:
             return True
-        lastLoadPosition = self.__dimHelper.to_units(lastLoadPosition)
-        print(" - lastLoadPosition : ", lastLoadPosition)
+        # # print("Checking position : ", position)
+        # lastLoadPosition = self.__cache.get_buffer_origin()
+        # # print(" - lastLoadPosition : ", lastLoadPosition)
+        # if not lastLoadPosition:
+        #     return True
+        # lastLoadPosition = self.__dimHelper.to_units(lastLoadPosition)
+        # # print(" - lastLoadPosition : ", lastLoadPosition)
 
-        cachePos = position - lastLoadPosition
+        cachePos = []
+        for pos, lpos in zip(position, self.__lastCachePosition):
+            cachePos.append(float(pos - lpos))
         print(" - cache position : ", cachePos)
         for pos, span in zip(cachePos, self.__targetCacheSpan):
             if isinstance(span, slice):
@@ -74,13 +78,16 @@ class MesoNHProbe:
             else:
                 if pos / span > self.__updateThreshold:
                     return True
+        
+        # print("No cache load !")
         return False
 
     def update_cache(self, position, blocking=False):
        
-        print("Cache update requested pos : ", position)
+        # print("Cache update requested pos : ", position)
         if not self.check_position(position):
             return
+        # print("trying cache load")
         
         newCacheKeys = ()
         for pos, span in zip(position, self.__targetCacheSpan):
@@ -90,22 +97,26 @@ class MesoNHProbe:
             else:
                 newCacheKeys = newCacheKeys + (slice(pos, pos + span, None),)
 
-        print("span : ", newCacheKeys)
-        newCacheKeys = self.__dimHelper.clip_units(newCacheKeys)
-        print("span : ", newCacheKeys)
-        newCacheKeys = self.__dimHelper.to_indexes(newCacheKeys)
-        print("span : ", newCacheKeys)
+        # print("span : ", newCacheKeys)
+        indexKeys = self.__dimHelper.clip_units(newCacheKeys)
+        # print("span : ", newCacheKeys)
+        indexKeys = self.__dimHelper.to_indexes(indexKeys)
+        # print("span : ", newCacheKeys)
         # newCacheKeys = self.__dimHelper.clip_keys(newCacheKeys)
         # print("span : ", newCacheKeys)
-        self.__cache.load(newCacheKeys, blocking=blocking)
+        try:
+            self.__cache.load(indexKeys, blocking=blocking)
+        except:
+            pass
+        self.__lastCachePosition = position
 
     def __getitem__(self, position):
         
         # check if update required and update if necessary
         self.update_cache(position, blocking=False)
 
-        indexes = self.__dimHelper.to_indexes(position).astype(int)
-        indexes = self.__dimHelper.clip_keys(position)
+        indexes = self.__dimHelper.to_indexes(position)
+        indexes = self.__dimHelper.clip_keys(indexes)
         return self.__cache[indexes]
 
     def getCache(self):

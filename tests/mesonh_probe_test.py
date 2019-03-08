@@ -22,15 +22,23 @@ atm = MFDataset(mesonhfiles)
 
 probe = cdf.MesoNHProbe(atm, ['RCT','WT'])
 
-position = [probe.t0,0,0,0]
-v = 25;
+position = cdf.Fancy()[probe.t0,0.01,0,0]
+v = 0.025
+# dt = 1.0
 dt = 0.1
 
-probe.update_cache(cdf.Fancy()[probe.t0,0,0,0], blocking=True)
+probe.update_cache(position, blocking=True)
 
 for i in range(100):
-    print(probe[position])
-    position = position * v / dt
+    print(position, " : ", probe[position])
+    # newPos = ()
+    # for p in position:
+    #     newPos = newPos + (p + v * dt,)
+    # position = newPos
+    position = (position[0] + dt,
+                position[1],
+                position[2],
+                position[3] + v*dt,)
     time.sleep(dt)
 
 # # cache = cdf.MultiCache([cdf.MesoNHVariable(atm, 'RCT'), cdf.MesoNHVariable(atm, 'WT')])
