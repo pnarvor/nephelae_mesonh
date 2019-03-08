@@ -33,7 +33,8 @@ class MesoNHProbe:
     """
 
     def __init__(self, atm, variables,
-                 targetCacheSpan=Fancy()[10.0,-0.5:0.5,-0.5:0.5,-0.5:0.5]):
+                 targetCacheSpan=Fancy()[20.0,-0.5:0.5,-0.5:0.5,-0.5:0.5],
+                 updateThreshold = 0.5):
     
         self.__atm       = atm
         self.__dimHelper = MesoNHDimensionHelper(atm)
@@ -48,12 +49,12 @@ class MesoNHProbe:
 
         self.__cache             = MultiCache(tmpVarList)
         self.__targetCacheSpan   = targetCacheSpan
-        self.__updateThreshold   = 0.5
-        self.__lastCachePosition = ()
+        self.__updateThreshold   = updateThreshold
 
     def check_position(self, position):
 
-        if not self.__lastCachePosition:
+        lastCachePosition = self.__cache.get_user_data()
+        if not lastCachePosition:
             return True
         # # print("Checking position : ", position)
         # lastLoadPosition = self.__cache.get_buffer_origin()
@@ -64,7 +65,7 @@ class MesoNHProbe:
         # # print(" - lastLoadPosition : ", lastLoadPosition)
 
         cachePos = []
-        for pos, lpos in zip(position, self.__lastCachePosition):
+        for pos, lpos in zip(position, lastCachePosition):
             cachePos.append(float(pos - lpos))
         print(" - cache position : ", cachePos)
         for pos, span in zip(cachePos, self.__targetCacheSpan):
@@ -104,11 +105,13 @@ class MesoNHProbe:
         # print("span : ", newCacheKeys)
         # newCacheKeys = self.__dimHelper.clip_keys(newCacheKeys)
         # print("span : ", newCacheKeys)
+        self.__cache.set_user_data(position)
+        print(self.__cache._MultiCache__dataToUpdate)
         try:
             self.__cache.load(indexKeys, blocking=blocking)
         except:
             pass
-        self.__lastCachePosition = position
+        print(self.__cache.get_user_data())
 
     def __getitem__(self, position):
         
