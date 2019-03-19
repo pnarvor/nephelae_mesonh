@@ -106,12 +106,17 @@ class MultiCache(th.Thread):
                 newKeys = newKeys + (key - origin,)
 
         res = []
-        for buf in self.buffers:
-            res.append(buf[newKeys])
+        try:
+            for buf in self.buffers:
+                res.append(buf[newKeys])
+        except:
+            self.__bufferLock.release()
+            raise
 
         self.__bufferLock.release()
 
-        return res
+        # return res
+        return np.array(res)
 
     def load(self, keys, blocking=False, dataToUpdate=()):
         if not self.__loadLock.acquire(blocking=blocking):
