@@ -21,9 +21,14 @@ mesonhfiles = sys.argv[slice(1,len(sys.argv))]
 atm = MFDataset(mesonhfiles)
 print("MesoNH loaded !")
 
-probe = cdf.MesoNHProbe(atm, ['RCT','WT'])
+# probe = cdf.MesoNHProbe(atm, ['RCT'])
+# probe = cdf.MesoNHProbe(atm, ['WT'])
+# probe = cdf.MesoNHProbe(atm, ['RCT','WT'])
+probe = cdf.MesoNHProbe(atm, ['RCT','UT','VT','WT'])
+# probe = cdf.MesoNHProbe(atm, ['UT','VT'])
 
-position = cdf.Fancy()[probe.t0,0.01,0,0]
+# position = cdf.Fancy()[probe.t0,0.01,0,0]
+position = cdf.Fancy()[probe.t0, 2.0, 0.0, 0.0]
 # v = 0.025
 v = 0.020
 # dt = 1.0
@@ -32,7 +37,8 @@ dt = 0.1
 probe.update_cache(position, blocking=True)
 
 for i in range(1000):
-    print(position, " : ", probe[position])
+    print("Read ", i, " : ", position, ", ", probe[position])
+    # tmp = probe[position]
     # newPos = ()
     # for p in position:
     #     newPos = newPos + (p + v * dt,)
@@ -41,7 +47,10 @@ for i in range(1000):
                 position[1],
                 position[2],
                 position[3] + v*dt,)
-    time.sleep(dt)
+    # time.sleep(dt)
+    # time.sleep(2*dt)
+    # time.sleep(0.5*dt)
+    time.sleep(1.0)
 
 # # cache = cdf.MultiCache([cdf.MesoNHVariable(atm, 'RCT'), cdf.MesoNHVariable(atm, 'WT')])
 # cache = probe.getCache()

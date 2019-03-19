@@ -1,5 +1,7 @@
 import numpy as np
 import time
+import scipy.interpolate as interp
+import math as m
 
 from .MesoNHVariable        import MesoNHVariable
 from .MultiCache            import MultiCache
@@ -34,7 +36,7 @@ class MesoNHProbe:
 
     def __init__(self, atm, variables,
                  targetCacheSpan=Fancy()[20.0,-0.5:0.5,-0.5:0.5,-0.5:0.5],
-                 updateThreshold = 0.5):
+                 updateThreshold = 0.2):
     
         self.__atm       = atm
         self.__dimHelper = MesoNHDimensionHelper(atm)
@@ -94,19 +96,114 @@ class MesoNHProbe:
         try:
             self.__cache.load(indexKeys, blocking=blocking)
         except:
-            pass
-        print(self.__cache.get_user_data())
+            return
 
     def __getitem__(self, position):
+        
+        """
+        position must be a tuple of single floating point values
+        """
         
         # check if update required and update if necessary
         self.update_cache(position, blocking=False)
 
         indexes = self.__dimHelper.to_indexes(position)
-        indexes = self.__dimHelper.clip_keys(indexes)
-        return self.__cache[indexes]
 
-    def getCache(self):
+        readIndexes = ()
+        for key in indexes:
+            readIndexes = readIndexes + (slice(int(m.floor(key)),
+                                               int(m.floor(key)) + 2,
+                                               None),)
+        readUnits = self.__dimHelper.to_units(readIndexes)
+
+        # print("Position : ", position)
+        # print("indexes  : ", indexes)
+        # print("Read indexes : ", readIndexes)
+        # print("Read units   : ", readUnits)
+
+        try:
+            gridData = self.__cache[readIndexes]
+        except Exception as e:
+            print("Warning : could not read from cache. "
+                  "Your probe is probably moving too fast or "
+                  "you didn't initialize probe buffer before read.\n"
+                  " - If the former consider lowering the probe speed.\n"
+                  " - If the later, call :\n"
+                  "     MesoNHProbe.update_cache(posistion, blocking=True)\n"
+                  "   After MesoNHProbe object build (position argument must "
+                     "be the start position of the probe)\n"
+                  "Exception feedback : ", e)
+            return []
+        
+        # print(gridData.shape)
+        # return gridData
+
+        points = np.empty([16, 4])
+        ru = readUnits
+        points[ 0,:] = [ru[0].start, ru[1].start, ru[2].start, ru[3].start]
+        points[ 1,:] = [ru[0].start, ru[1].start, ru[2].start, ru[3].stop ]
+        points[ 2,:] = [ru[0].start, ru[1].start, ru[2].stop , ru[3].start]
+        points[ 3,:] = [ru[0].start, ru[1].start, ru[2].stop , ru[3].stop ]
+        points[ 4,:] = [ru[0].start, ru[1].stop , ru[2].start, ru[3].start]
+        points[ 5,:] = [ru[0].start, ru[1].stop , ru[2].start, ru[3].stop ]
+        points[ 6,:] = [ru[0].start, ru[1].stop , ru[2].stop , ru[3].start]
+        points[ 7,:] = [ru[0].start, ru[1].stop , ru[2].stop , ru[3].stop ]
+        points[ 8,:] = [ru[0].stop , ru[1].start, ru[2].start, ru[3].start]
+        points[ 9,:] = [ru[0].stop , ru[1].start, ru[2].start, ru[3].stop ]
+        points[10,:] = [ru[0].stop , ru[1].start, ru[2].stop , ru[3].start]
+        points[11,:] = [ru[0].stop , ru[1].start, ru[2].stop , ru[3].stop ]
+        points[12,:] = [ru[0].stop , ru[1].stop , ru[2].start, ru[3].start]
+        points[13,:] = [ru[0].stop , ru[1].stop , ru[2].start, ru[3].stop ]
+        points[14,:] = [ru[0].stop , ru[1].stop , ru[2].stop , ru[3].start]
+        points[15,:] = [ru[0].stop , ru[1].stop , ru[2].stop , ru[3].stop ]
+
+        values = np.empty([gridData.shape[0], 16])
+        for i in range(gridData.shape[0]):
+            values[i, 0] = gridData[i, 0, 0, 0, 0]
+            values[i, 1] = gridData[i, 0, 0, 0, 1]
+            values[i, 2] = gridData[i, 0, 0, 1, 0]
+            values[i, 3] = gridData[i, 0, 0, 1, 1]
+            values[i, 4] = gridData[i, 0, 1, 0, 0]
+            values[i, 5] = gridData[i, 0, 1, 0, 1]
+            values[i, 6] = gridData[i, 0, 1, 1, 0]
+            values[i, 7] = gridData[i, 0, 1, 1, 1]
+            values[i, 8] = gridData[i, 1, 0, 0, 0]
+            values[i, 9] = gridData[i, 1, 0, 0, 1]
+            values[i,10] = gridData[i, 1, 0, 1, 0]
+            values[i,11] = gridData[i, 1, 0, 1, 1]
+            values[i,12] = gridData[i, 1, 1, 0, 0]
+            values[i,13] = gridData[i, 1, 1, 0, 1]
+            values[i,14] = gridData[i, 1, 1, 1, 0]
+            values[i,15] = gridData[i, 1, 1, 1, 1]
+
+        pos = np.array(position)
+        dist = points - pos
+        mu = np.linalg.norm(points - pos, axis=1)
+        # res = np.dot(values, mu / np.sum(mu))
+
+        return np.dot(values, mu / np.sum(mu))
+
+        # for i in range(16):
+        #     dist[i,:] = dist[i,:] - pos
+
+        # print("Position : ", pos)
+        # print("Points   :\n", points)
+        # print("Dist     :\n", dist)
+        # print("mu       :\n", mu / np.sum(mu))
+        # print("Values   :\n", values)
+        # print("res      :\n", res)
+        # print("diff     :\n", values - res)
+        
+        # res =  interp.griddata(points, values, position, method='nearest')
+        # print("Nearest : ", res)
+        # res =  interp.griddata(points, values, position, method='linear')
+        # print("Linear : ", res)
+        # return res
+
+        # return interp.griddata(points, values, position, method='nearest')
+        # return interp.griddata(points, values, position, method='linear')
+
+    def get_cache(self):
         return self.__cache
 
 
