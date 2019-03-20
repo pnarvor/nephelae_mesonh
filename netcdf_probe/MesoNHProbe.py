@@ -116,11 +116,6 @@ class MesoNHProbe:
                                                None),)
         readUnits = self.__dimHelper.to_units(readIndexes)
 
-        # print("Position : ", position)
-        # print("indexes  : ", indexes)
-        # print("Read indexes : ", readIndexes)
-        # print("Read units   : ", readUnits)
-
         try:
             gridData = self.__cache[readIndexes]
         except Exception as e:
@@ -135,9 +130,6 @@ class MesoNHProbe:
                   "Exception feedback : ", e)
             return []
         
-        # print(gridData.shape)
-        # return gridData
-
         points = np.empty([16, 4])
         ru = readUnits
         points[ 0,:] = [ru[0].start, ru[1].start, ru[2].start, ru[3].start]
@@ -179,29 +171,10 @@ class MesoNHProbe:
         pos = np.array(position)
         dist = points - pos
         mu = np.linalg.norm(points - pos, axis=1)
-        # res = np.dot(values, mu / np.sum(mu))
-
         return np.dot(values, mu / np.sum(mu))
 
-        # for i in range(16):
-        #     dist[i,:] = dist[i,:] - pos
-
-        # print("Position : ", pos)
-        # print("Points   :\n", points)
-        # print("Dist     :\n", dist)
-        # print("mu       :\n", mu / np.sum(mu))
-        # print("Values   :\n", values)
-        # print("res      :\n", res)
-        # print("diff     :\n", values - res)
-        
-        # res =  interp.griddata(points, values, position, method='nearest')
-        # print("Nearest : ", res)
-        # res =  interp.griddata(points, values, position, method='linear')
-        # print("Linear : ", res)
-        # return res
-
         # return interp.griddata(points, values, position, method='nearest')
-        # return interp.griddata(points, values, position, method='linear')
+        # return interp.griddata(points, values, position, method='linear') # does not work
 
     def get_cache(self):
         return self.__cache

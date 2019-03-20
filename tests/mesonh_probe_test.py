@@ -27,7 +27,6 @@ print("MesoNH loaded !")
 probe = cdf.MesoNHProbe(atm, ['RCT','UT','VT','WT'])
 # probe = cdf.MesoNHProbe(atm, ['UT','VT'])
 
-# position = cdf.Fancy()[probe.t0,0.01,0,0]
 position = cdf.Fancy()[probe.t0, 2.0, 0.0, 0.0]
 # v = 0.025
 v = 0.020
@@ -39,10 +38,6 @@ probe.update_cache(position, blocking=True)
 for i in range(1000):
     print("Read ", i, " : ", position, ", ", probe[position])
     # tmp = probe[position]
-    # newPos = ()
-    # for p in position:
-    #     newPos = newPos + (p + v * dt,)
-    # position = newPos
     position = (position[0] + dt,
                 position[1],
                 position[2],
@@ -52,16 +47,6 @@ for i in range(1000):
     # time.sleep(0.5*dt)
     time.sleep(1.0)
 
-# # cache = cdf.MultiCache([cdf.MesoNHVariable(atm, 'RCT'), cdf.MesoNHVariable(atm, 'WT')])
-# cache = probe.getCache()
-# cache.load(cdf.Fancy()[10,0:160,128,0:300], blocking=True)
-# 
-# image0 = np.flip(np.squeeze(cache.buffers[0]), 0)
-# image1 = np.flip(np.squeeze(cache.buffers[1]), 0)
-# 
-# # plt.imshow(image0, cmap='viridis')
-# plt.imshow(image1, cmap='viridis')
-# plt.show(block=False)
 
 
 
