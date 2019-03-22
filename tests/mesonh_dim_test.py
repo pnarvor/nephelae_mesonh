@@ -23,8 +23,8 @@ print("MesoNH loaded !")
 
 
 
-dims = cdf.MesoNHDimensionHelper(atm)
-print(dims.to_units(cdf.Fancy()[1,0:161,0:400,0:400]))
-print(dims.to_units(cdf.Fancy()[0:144,0:161,0:400,0:400]))
-print(dims.to_units(cdf.Fancy()[0:144,0:161,0:750,0:750]))
-print(dims.to_indexes(cdf.Fancy()[77999512,0.5:2.5,-2.5:7.5,0.5:2.5]))
+# dims = cdf.MesoNHDimensionHelper(atm)
+# print(dims.to_units(cdf.Fancy()[1,0:161,0:400,0:400]))
+# print(dims.to_units(cdf.Fancy()[0:144,0:161,0:400,0:400]))
+# print(dims.to_units(cdf.Fancy()[0:144,0:161,0:750,0:750]))
+# print(dims.to_indexes(cdf.Fancy()[77999512,0.5:2.5,-2.5:7.5,0.5:2.5]))

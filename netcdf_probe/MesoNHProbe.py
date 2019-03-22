@@ -62,7 +62,7 @@ class MesoNHProbe:
         cachePos = []
         for pos, lpos in zip(position, lastCachePosition):
             cachePos.append(float(pos - lpos))
-        print(" - cache position : ", cachePos)
+        # print(" - cache position : ", cachePos)
         for pos, span in zip(cachePos, self.__targetCacheSpan):
             if isinstance(span, slice):
                 if pos < 0:
@@ -115,7 +115,6 @@ class MesoNHProbe:
                                                int(m.floor(key)) + 2,
                                                None),)
         readUnits = self.__dimHelper.to_units(readIndexes)
-
         try:
             gridData = self.__cache[readIndexes]
         except Exception as e:

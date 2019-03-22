@@ -97,6 +97,8 @@ class MultiCache(th.Thread):
 
         self.__bufferLock.acquire()
 
+        # print(" - read indexes  : ", keys)
+        # print(" - buffer origin : ", self.__bufferOrigin)
         newKeys = ()
         for key, origin in zip(keys, self.__bufferOrigin):
             if isinstance(key, slice):
@@ -105,6 +107,7 @@ class MultiCache(th.Thread):
             else:
                 newKeys = newKeys + (key - origin,)
 
+        # print(" - Read in cache : ", newKeys)
         res = []
         try:
             for buf in self.buffers:
@@ -161,10 +164,20 @@ class MultiCache(th.Thread):
 
     def __doLoad(self, keys):
 
+        startTime = time.time()
+        
         if keys == self.__lastLoadKeys:
             return
         
-        print("Loading in progress ------------------------")
+        # print("Loading in progress ------------------------")
+        loadShape = ()
+        for key in keys:
+            if isinstance(key, slice):
+                loadShape = loadShape + (key.stop - key.start,)
+            else:
+                loadShape = loadShape + (1,)
+        # print("Load shape : ", loadShape)
+
         # perfom load from self.data
         outputs = []
         for array in self.data:
@@ -190,5 +203,5 @@ class MultiCache(th.Thread):
 
         self.__lastLoadKeys = keys
 
-        print("Load finished ! ------------------------")
+        # print("Load finished ! Ellapsed : ", 1000.0* (time.time() - startTime),"ms  ------------------------")
 
