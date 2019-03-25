@@ -10,7 +10,7 @@ import matplotlib.cm as cm
 import time
 
 from netCDF4 import MFDataset
-import netcdf_probe as cdf
+import mesonh_probe as cdf
 
 """
 test file for periodiccontainer and netcdfinterface types

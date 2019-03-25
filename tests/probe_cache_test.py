@@ -9,7 +9,7 @@ import imageio
 import matplotlib.cm as cm
 
 from netCDF4 import MFDataset
-import netcdf_probe as cdf
+import mesonh_probe as cdf
 import time
 
 """
