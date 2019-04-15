@@ -163,7 +163,7 @@ class MultiCache(th.Thread):
 
     def stop(self):
         self.__running = False
-        if not self.__loadLock.acquire(blocking=blocking):
+        if not self.__loadLock.acquire(blocking=True):
             raise Exception("MultiCache.load() : Could not lock __loadLock, aborting")
         self.__loadLock.notify()
         self.__loadLock.release()
