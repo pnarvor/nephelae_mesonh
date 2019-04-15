@@ -1,3 +1,5 @@
+import os
+import sys
 import numpy as np
 from netCDF4 import MFDataset
 
@@ -15,7 +17,7 @@ class PPRZMesoNHInterface(MesoNHProbe):
     def __init__(self, uavID, t0, mesonhFiles, mesoNHVariables,
                  targetCacheSpan=Fancy()[20, -0.2:0.1, -0.2:0.2, -0.2:0.2],
                  updateThreshold=0.0):
-        self.mesoNHProbe = MesoNHProbe(MFDataSet(mesonhFiles),
+        self.mesoNHProbe = MesoNHProbe(MFDataset(mesonhFiles),
                                        mesoNHVariables,
                                        targetCacheSpan,
                                        updateThreshold)
