@@ -159,8 +159,15 @@ class MultiCache(th.Thread):
             # prevent potential deadLock, not used in nominal behavior
             if not self.__running:
                 self.__loadLock.release()
-
                 break
+
+    def stop(self):
+        self.__running = False
+        if not self.__loadLock.acquire(blocking=blocking):
+            raise Exception("MultiCache.load() : Could not lock __loadLock, aborting")
+        self.__loadLock.notify()
+        self.__loadLock.release()
+        self.join()
 
     def __doLoad(self, keys):
 

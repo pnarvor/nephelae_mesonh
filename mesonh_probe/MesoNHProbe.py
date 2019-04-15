@@ -178,6 +178,9 @@ class MesoNHProbe:
     def get_cache(self):
         return self.__cache
 
+    def stop(self):
+        self.__cache.stop()
+
 
 
 
