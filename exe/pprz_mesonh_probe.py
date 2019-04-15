@@ -5,13 +5,14 @@ import os
 sys.path.append('../')
 import signal
 import argparse
+import time
 
 import mesonh_probe as cdf
 
 parser = argparse.ArgumentParser()
 parser.add_argument("uav_id", type=int,
                     help="Paparazzi sim UAV id to get GPS message from")
-parser.add_argument("t0_sim", type=float,
+parser.add_argument("-t","--t0-sim", type=float,
                     help="Time of beginning of paparazzi simulation for "
                          "synchronization with the MesoNH time")
 parser.add_argument("-m", "--mesonh-variables", nargs='+',
@@ -30,9 +31,13 @@ if args.mesonh_variables is None:
 if args.mesonh_files is None:
     raise Exception("Argument error : Mush give at leat one mesonh file. "
                      "See \"--help\" for details.")
+if args.t0_sim is None:
+    t0 = time.time()
+else:
+    t0 = args.t0_sim
 
 
-probe = cdf.PPRZMesoNHInterface(args.uav_id, args.t0_sim,
+probe = cdf.PPRZMesoNHInterface(args.uav_id, t0,
                                 args.mesonh_files, args.mesonh_variables)
 
 
