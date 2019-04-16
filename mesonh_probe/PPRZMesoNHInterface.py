@@ -17,7 +17,7 @@ class PPRZMesoNHInterface(MesoNHProbe):
     def __init__(self, uavID, t0, mesonhFiles, mesoNHVariables,
                  targetCacheSpan=Fancy()[20, -0.2:0.1, -0.2:0.2, -0.2:0.2],
                  updateThreshold=0.0):
-        self.mesoNHProbe = MesoNHProbe(MFDataset(mesonhFiles),
+        self.mesonhProbe = MesoNHProbe(MFDataset(mesonhFiles),
                                        mesoNHVariables,
                                        targetCacheSpan,
                                        updateThreshold)
@@ -32,22 +32,22 @@ class PPRZMesoNHInterface(MesoNHProbe):
         if not ivyAgent == self.uavID:
             return
 
-        if not initialized:
+        if not self.initialized:
             print("Initializing... ")
-            position = cdf.Fancy()[self.mesonhProbe.t0, \
-                                   float(msg._fieldvalues[4]) / 1.0e6, \
-                                   float(msg._fieldvalues[1]) / 1.0e5, \
-                                   float(msg._fieldvalues[2]) / 1.0e5]
-            self.mesoNHProbe.update_cache(position, blocking=True)
+            position = Fancy()[self.mesonhProbe.t0, \
+                               float(msg._fieldvalues[4]) / 1.0e6, \
+                               float(msg._fieldvalues[1]) / 1.0e5, \
+                               float(msg._fieldvalues[2]) / 1.0e5]
+            self.mesonhProbe.update_cache(position, blocking=True)
             self.initialized = True
             print("Done !")
             return
 
-        position = cdf.Fancy()[self.mesonhProbe.t0
-                               + float(msg._fieldvalues[8])/1000.0 - self.t0, \
-                               float(msg._fieldvalues[4]) / 1.0e6, \
-                               float(msg._fieldvalues[1]) / 1.0e5, \
-                               float(msg._fieldvalues[2]) / 1.0e5]
+        position = Fancy()[self.mesonhProbe.t0
+                           + float(msg._fieldvalues[8])/1000.0 - self.t0, \
+                           float(msg._fieldvalues[4]) / 1.0e6, \
+                           float(msg._fieldvalues[1]) / 1.0e5, \
+                           float(msg._fieldvalues[2]) / 1.0e5]
         # print(" ------- Position : ", position)
         try:
             print("Read : ", position, ", ", self.mesonhProbe[position])
@@ -57,5 +57,5 @@ class PPRZMesoNHInterface(MesoNHProbe):
     def stop(self):
         print("\nShutting down...")
         self.ivy.shutdown()
-        self.mesoNHProbe.stop()
+        self.mesonhProbe.stop()
         print("Done !")
