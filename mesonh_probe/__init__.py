@@ -10,3 +10,4 @@ from .BiDirectionalLinear   import BiDirectionalLinear
 from .MesoNHDimensionHelper import MesoNHDimensionHelper
 from .MesoNHProbe           import MesoNHProbe
 from .PPRZMesoNHInterface   import PPRZMesoNHInterface
+from .PPRZMesoNHLauncher    import PPRZMesoNHLauncher
