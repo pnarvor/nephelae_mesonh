@@ -37,8 +37,11 @@ else:
     t0 = args.t0_sim
 
 
-probe = cdf.PPRZMesoNHInterface(args.uav_id, t0,
-                                args.mesonh_files, args.mesonh_variables)
+try:
+    probe = cdf.PPRZMesoNHInterface(args.uav_id, t0,
+                                    args.mesonh_files, args.mesonh_variables)
+except e as Exception:
+    print(e.what())
 
 
 def signal_handler(signal, frame):
