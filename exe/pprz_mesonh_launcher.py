@@ -28,7 +28,7 @@ launcher = PPRZMesoNHLauncher(args.mesonh_files, args.mesonh_variables)
 
 def signal_handler(signal, frame):
     launcher.stop()
-    exit()
+    sys.exit()
 signal.signal(signal.SIGINT, signal_handler)
 
 signal.pause()
