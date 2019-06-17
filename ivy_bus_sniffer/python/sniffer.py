@@ -5,9 +5,9 @@ import sys
 import signal
 
 def signal_handler(signal, frame):
-    print("Shutdown...")
+    print("\nShutdown... ", end='')
     IvyStop()
-    print("Done.")
+    print("Complete.")
     exit()
 signal.signal(signal.SIGINT, signal_handler)
 
@@ -25,11 +25,13 @@ IvyStart("127.255.255.255:2010")                # IvyBus on localhost
 
 def callback_01(agent, msg):
     print("Agent \"" + str(agent) + "\" sent : \"" + str(msg) + "\"")
-IvyBindMsg(callback_01, '(.*)')
+# IvyBindMsg(callback_01, '(.*)')
 # IvyBindMsg(callback_01, '(.* GPS .*)') # Binding a callback to a regex (regular expression) filter
 # IvyBindMsg(callback_01, '(.*PAYLOAD_FLOAT_PPRZ.*)') # Binding a callback to a regex (regular expression) filter
 # IvyBindMsg(callback_01, '(.*PAYLOAD_FLOAT_MBED.*)') # Binding a callback to a regex (regular expression) filter
 # IvyBindMsg(callback_01, '(.*test.*)')
+
+IvyBindMsg(callback_01, '(.* WORLD_ENV.*)') # Binding a callback to a regex (regular expression) filter
 
 
 # IvyBus related code stops here #################################
