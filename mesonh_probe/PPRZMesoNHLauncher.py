@@ -28,36 +28,33 @@ class PPRZMesoNHLauncher:
         self.uavT0 = -1.0
         self.uavIDs = []
 
-        # self.ivy = IvyMessagesInterface("MesoNHSensors_" + str(os.getpid()))
-        # self.ivy.subscribe(self.find_uavs_callback,'(.* GPS .*)')
-        # self.ivy.subscribe(self.find_uavs_callback_world,'(.* WORLD_ENV_REQ .*)')
-
-        ivy = IvyInit("MesoNHSensors_" + str(os.getpid()))
+        IvyInit("MesoNHSensors_" + str(os.getpid()))
         # set log level to hide INFO stdout messages
         logging.getLogger('Ivy').setLevel(logging.WARN) 
         IvyStart("127.255.255.255:2010")
-        IvyBindMsg(lambda agent, msg: self.find_uavs_callback_world(agent, msg),
-                   '(.* WORLD_ENV_REQ .*)')
+        IvyBindMsg(lambda agent, msg: self.find_t0_sim_callback(agent, msg),
+                   '(.* GPS .*)')
 
     def stop(self):
-        print("\nShutting down...")
-        # self.ivy.shutdown()
+        print("\nShutting down...", end="")
+        IvyStop()
         for p in self.probes:
             p.signal(signal.SIGINT)
-        print("Done !")
+            p.wait()
+        self.probes = []
+        print("Complete.")
 
-    def find_uavs_callback(self, ivyAgent, msg):
+    def find_t0_sim_callback(self, ivyAgent, msg):
 
         if self.uavT0 < 0.0:
-            if not float(msg._fieldvalues[8])/1000.0 > 5.0:
+            if not float(msg.split(' ')[10])/1.0e3 > 5.0:
                 return
-            self.uavT0 = float(msg._fieldvalues[8])/1000.0
-            print("Setting t0 : ", self.uavT0)
-        
-        if not ivyAgent in self.uavIDs:
-            print("Found UAV : ", ivyAgent)
-            self.uavIDs.append(ivyAgent)
-            # self.launch_probe(ivyAgent)
+            self.uavT0 = float(msg.split(' ')[10])/1.0e3
+            print("Found t0_sim : ", self.uavT0)
+
+            IvyBindMsg(lambda agent, msg: self.find_uavs_callback_world(agent, msg),
+                       '(.* WORLD_ENV_REQ .*)')
+
 
     def find_uavs_callback_world(self, ivyAgent, msg):
 
@@ -71,7 +68,7 @@ class PPRZMesoNHLauncher:
         if not uavId in self.uavIDs:
             print("Found UAV : ", uavId)
             self.uavIDs.append(uavId)
-            # self.launch_probe(uavId)
+            self.launch_probe(uavId)
 
     def launch_probe(self, uavID):
         command = sh.Command(self.probeExePath)
@@ -83,4 +80,4 @@ class PPRZMesoNHLauncher:
                                    "-t", str(self.uavT0),
                                    "-m",self.mesonhVariables,
                                    "-f", self.mesonhFiles))
-        print("Probe launch successfull")
+        print("Probe launch successfull (pid:"+str(self.probes[-1].pid)+")")
