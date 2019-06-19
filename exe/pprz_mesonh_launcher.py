@@ -17,18 +17,21 @@ print("MesoNH variables : ", args.mesonh_variables)
 print("MesoNH files     : ", args.mesonh_files)
 
 if args.mesonh_variables is None:
-    raise Exception("Argument error : Mush give at leat one mesonh variable. "
+    raise Exception("Argument error : Mush give at least one mesonh variable. "
                      "See \"--help\" for details.")
 if args.mesonh_files is None:
-    raise Exception("Argument error : Mush give at leat one mesonh file. "
+    raise Exception("Argument error : Mush give at least one mesonh file. "
                      "See \"--help\" for details.")
 
 launcher = PPRZMesoNHLauncher(args.mesonh_files, args.mesonh_variables)
 
-
-def signal_handler(signal, frame):
+def signal_handler_empty(sig, frame):
+    # exit()
+    pass
+def signal_handler(sig, frame):
     launcher.stop()
-    sys.exit()
+    signal.signal(signal.SIGINT, signal_handler_empty)
+    # exit()
 signal.signal(signal.SIGINT, signal_handler)
 
-signal.pause()
+# signal.pause()

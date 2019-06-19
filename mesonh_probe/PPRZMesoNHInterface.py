@@ -3,6 +3,7 @@ import sys
 import numpy as np
 from netCDF4 import MFDataset
 import utm
+import time
 
 from .MesoNHProbe import MesoNHProbe
 from .Fancy       import Fancy
@@ -31,15 +32,17 @@ class PPRZMesoNHInterface(MesoNHProbe):
         self.t0 = t0
         self.currentPosition = []
         self.initialized = False
+        self.stopping = False
+        self.stopped  = False
 
         IvyInit("MesoNHSensors_" + str(os.getpid()))
         # set log level to hide INFO stdout messages
         logging.getLogger('Ivy').setLevel(logging.WARN) 
         IvyStart("127.255.255.255:2010")
-        IvyBindMsg(lambda agent, msg: self.read_callback_gps(agent, msg),
-                   '(.* GPS .*)')
-        IvyBindMsg(lambda agent, msg: self.read_callback_world(agent, msg),
-                   '(.* WORLD_ENV_REQ .*)')
+        self.gpsBind = IvyBindMsg(lambda agent, msg: self.read_callback_gps(agent, msg),
+                                  '(.* GPS .*)')
+        self.reqBind = IvyBindMsg(lambda agent, msg: self.read_callback_world(agent, msg),
+                                  '(.* WORLD_ENV_REQ .*)')
 
     def read_callback_gps(self, ivyAgent, msg):
         
@@ -83,15 +86,29 @@ class PPRZMesoNHInterface(MesoNHProbe):
 
         # print("Read : ", self.currentPosition, ", ", values)
         
-        response = (words[1] + " " + words[0] + " WORLD_ENV "
-                    + str(values[2]) + " " + str(values[3]) + " " + str(values[1]) + " 266.0 1.0 1")
-        # response = (words[1] + " " + words[0] + " WORLD_ENV "
-        #             + str(0.0) + " " + str(0.0) + " " + str(0.0) + " 266.0 1.0 1")
+        if not self.stopping:
+            response = (words[1] + " " + words[0] + " WORLD_ENV "
+                        + str(values[0]) + " "
+                        + str(values[1]) + " "
+                        + str(values[2]) + " 266.0 1.0 1")
+        else:
+            # sending 0s for stopping wind
+            IvyUnBindMsg(self.reqBind)
+            response = (words[1] + " " + words[0] + " WORLD_ENV "
+                        + str(0.0) + " " + str(0.0) + " " + str(0.0)
+                        + " 266.0 1.0 1")
+            self.stopped = True
         print("Response : ", response)
         IvySendMsg(response)
 
     def stop(self):
         print("\nShutting down... ", end="")
+        self.stopping = True
+        for i in range(50):
+            
+            if self.stopped:
+                break
+            time.sleep(0.1)
         IvyStop()
         self.mesonhProbe.stop()
         print("Complete.")

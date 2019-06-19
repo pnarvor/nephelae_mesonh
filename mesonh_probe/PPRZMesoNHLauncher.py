@@ -21,7 +21,7 @@ class PPRZMesoNHLauncher:
     def __init__(self, mesonhFiles, mesonhVariables):
 
         self.mesonhFiles     = mesonhFiles
-        self.mesonhVariables = mesonhVariables
+        self.mesonhVariables = ['UT','VT','WT'] + mesonhVariables
         self.probeExePath = (os.path.dirname(os.path.realpath(__file__))
                              + "/../exe/pprz_mesonh_probe.py")
         self.probes = []
@@ -37,11 +37,11 @@ class PPRZMesoNHLauncher:
 
     def stop(self):
         print("\nShutting down...", end="")
-        IvyStop()
         for p in self.probes:
             p.signal(signal.SIGINT)
             p.wait()
         self.probes = []
+        IvyStop()
         print("Complete.")
 
     def find_t0_sim_callback(self, ivyAgent, msg):
@@ -81,3 +81,6 @@ class PPRZMesoNHLauncher:
                                    "-m",self.mesonhVariables,
                                    "-f", self.mesonhFiles))
         print("Probe launch successfull (pid:"+str(self.probes[-1].pid)+")")
+
+
+

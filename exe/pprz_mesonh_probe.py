@@ -45,6 +45,7 @@ except e as Exception:
 
 
 def signal_handler(signal, frame):
+    print("Try stop")
     probe.stop()
     exit()
 signal.signal(signal.SIGINT, signal_handler)
