@@ -19,7 +19,7 @@ import logging
 class PPRZMesoNHInterface(MesoNHProbe):
 
 
-    def __init__(self, uavId, t0, mesonhFiles, mesoNHVariables,
+    def __init__(self, uavPid, t0, mesonhFiles, mesoNHVariables,
                  targetCacheSpan=Fancy()[20, -0.2:0.1, -0.2:0.2, -0.2:0.2],
                  updateThreshold=0.0):
 
@@ -27,9 +27,7 @@ class PPRZMesoNHInterface(MesoNHProbe):
                                        mesoNHVariables,
                                        targetCacheSpan,
                                        updateThreshold)
-        self.uavId           = uavId
-        self.uavPid          = -1
-        self.agentName       = None
+        self.uavPid          = uavPid
         self.t0              = t0
         self.currentPosition = []
         self.initialized     = False
@@ -40,82 +38,47 @@ class PPRZMesoNHInterface(MesoNHProbe):
         # set log level to hide INFO stdout messages
         logging.getLogger('Ivy').setLevel(logging.WARN) 
         IvyStart("127.255.255.255:2010")
-        # try:
-        #     print("Bind : ", "'" + '(' + str(self.uavId) + ' GPS .*)' + "'")
-        # except Exception as e:
-        #     print(e)
-        self.gpsBind = IvyBindMsg(lambda agent, msg: self.read_callback_gps(agent, msg),
-                                  '(' + str(self.uavId) + ' GPS .*)')
-        self.getPidBind = IvyBindMsg(lambda agent, msg: self.get_pid_callback(agent, msg),
-                                     '(.* WORLD_ENV_REQ .*)')
-        self.reqBind = None
-        # self.reqBind = IvyBindMsg(lambda agent, msg: self.read_callback_world(agent, msg),
-        #                           '(.* WORLD_ENV_REQ .*)')
-
-    def read_callback_gps(self, ivyAgent, msg):
-        
-        print("Agent \""+str(ivyAgent)+"\" sent : ", msg)
-        # uavId = int(msg.split(' ')[0])
-        # if not uavId == self.uavId:
-        #     return
-        
-        
-        if self.agentName is None:
-            self.agentName = str(ivyAgent)
-        
-        words = msg.split(' ')
-        # self.currentPosition = Fancy()[self.mesonhProbe.t0 + \
-        #                                float(words[10]) / 1.0e3 - self.t0,\
-        #                                float(words[6])  / 1.0e6,\
-        #                                float(words[3])  / 1.0e5,\
-        #                                float(words[4])  / 1.0e5]
-        t = self.mesonhProbe.t0 + time.time() - self.t0
-        self.currentPosition = Fancy()[t,\
-                                       float(words[6])  / 1.0e6,\
-                                       float(words[3])  / 1.0e5,\
-                                       float(words[4])  / 1.0e5]
-        if not self.initialized:
-            print("Initialization... ", end='')
-            self.mesonhProbe.update_cache(self.currentPosition, blocking=True)
-            self.initialized = True
-            print("Complete !")
-            return
-
-    def get_pid_callback(self, ivyAgent, msg):
-
-        if self.agentName is None:
-            return
-        
-        print("Found agent !")
-        if str(ivyAgent) == self.agentName and self.uavPid < 0:
-            self.uavPid = int(msg.split(' ')[1].split('_')[0])
-            print("Bind : ", "'" + '(' + str(self.uavPid) + '_\d+ WORLD_ENV_REQ .*)' + "'")
+        try:
             self.reqBind = IvyBindMsg(lambda agent, msg: self.read_callback_world(agent, msg),
+                                      # '(.* ' + str(self.uavPid) + '.*  WORLD_ENV_REQ .*)')
                                       '(.* ' + str(self.uavPid) + '_\d+ WORLD_ENV_REQ .*)')
-            IvyUnBindMsg(self.getPidBind)
+        except Exception as e:
+            print("PPRZMesoNHInterface.__init__ : \"" + str(e) + "\"")
 
     def read_callback_world(self, ivyAgent, msg):
         
+        t = self.mesonhProbe.t0 + time.time() - self.t0
         print("Agent \""+str(ivyAgent)+"\" sent : ", msg)
+
         try:
             words = msg.split(' ')
             uavPid = int(words[1].split("_")[0])
             if not uavPid == self.uavPid:
                 return
-            # if self.uavId == -1:
-            #     self.uavId = int(str(ivyAgent).split(' ')[2].split('@')[0])
+            # /!\ Mesonh dimensions are in km ...
+            # To be checked for reusability
+            position = Fancy()[t,\
+                               float(words[6]) / 1.0e3,\
+                               float(words[7]) / 1.0e3,\
+                               float(words[5]) / 1.0e3]
+            if not self.initialized:
+                print("Initialization... ", end='')
+                self.mesonhProbe.update_cache(position, blocking=True)
+                self.initialized = True
+                print("Complete !")
+                return
             if not self.initialized:
                 return
 
             values = []
             try:
-                values = self.mesonhProbe[self.currentPosition]
+                values = self.mesonhProbe[position]
             except Exception as e:
                 print("Could not read : ", e)
-                print("Position : ", self.currentPosition)
+                print("Position : ", position)
                 return
 
-            # print("Read : ", self.currentPosition, ", ", values)
+            # print("Read : ", position, ", ", values)
             
             if not self.stopping:
                 response = (words[1] + " " + words[0] + " WORLD_ENV "
@@ -140,7 +103,8 @@ class PPRZMesoNHInterface(MesoNHProbe):
         print("\nShutting down... ", end="")
         if self.reqBind is not None:
             self.stopping = True
-            for i in range(50):
+            # for i in range(50):
+            for i in range(10):
                 if self.stopped:
                     break
                 time.sleep(0.1)
