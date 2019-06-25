@@ -32,8 +32,12 @@ class PPRZMesoNHLauncher:
         # set log level to hide INFO stdout messages
         logging.getLogger('Ivy').setLevel(logging.WARN) 
         IvyStart("127.255.255.255:2010")
-        IvyBindMsg(lambda agent, msg: self.find_t0_sim_callback(agent, msg),
+        IvyBindMsg(lambda agent, msg: self.find_uavs_callback(agent, msg),
                    '(.* GPS .*)')
+        # IvyBindMsg(lambda agent, msg: self.find_t0_sim_callback(agent, msg),
+        #            '(.* GPS .*)')
+        # IvyBindMsg(lambda agent, msg: self.find_t0_sim_callback(agent, msg),
+        #            '(.* GPS .*)')
 
     def stop(self):
         print("\nShutting down...", end="")
@@ -44,31 +48,49 @@ class PPRZMesoNHLauncher:
         IvyStop()
         print("Complete.")
 
-    def find_t0_sim_callback(self, ivyAgent, msg):
+    def find_uavs_callback(self, ivyAgent, msg):
 
         if self.uavT0 < 0.0:
-            if not float(msg.split(' ')[10])/1.0e3 > 5.0:
-                return
-            self.uavT0 = float(msg.split(' ')[10])/1.0e3
-            print("Found t0_sim : ", self.uavT0)
+            self.uavT0 = time.time()
+            print("t0 : ", self.uavT0)
 
-            IvyBindMsg(lambda agent, msg: self.find_uavs_callback_world(agent, msg),
-                       '(.* WORLD_ENV_REQ .*)')
-
-
-    def find_uavs_callback_world(self, ivyAgent, msg):
-
-        # print("Agent : ", ivyAgent, " sent : ", msg)
-
-        if self.uavT0 < 0.0:
-            self.uavT0 = time.time() # not perfect but neither is pprz
-            print("Setting t0 : ", self.uavT0)
-
-        uavId = int(msg.split()[1].split("_")[0])
+        uavId = int(msg.split(' ')[0])
         if not uavId in self.uavIDs:
             print("Found UAV : ", uavId)
             self.uavIDs.append(uavId)
             self.launch_probe(uavId)
+
+    # def find_t0_sim_callback(self, ivyAgent, msg):
+
+    #     # Not compatible with nps...
+    #     # if self.uavT0 < 0.0:
+    #     #     if not float(msg.split(' ')[10])/1.0e3 > 5.0:
+    #     #         return
+    #     #     self.uavT0 = float(msg.split(' ')[10])/1.0e3
+    #     #     print("Found t0_sim : ", self.uavT0)
+
+    #     #     IvyBindMsg(lambda agent, msg: self.find_uavs_callback_world(agent, msg),
+    #     #                '(.* WORLD_ENV_REQ .*)')
+
+    #     if self.uavT0 < 0.0:
+    #         self.uavT0 = time.time()
+    #         IvyBindMsg(lambda agent, msg: self.find_uavs_callback_world(agent, msg),
+    #                    '(.* WORLD_ENV_REQ .*)')
+
+
+    # def find_uavs_callback_world(self, ivyAgent, msg):
+
+    #     # print("Agent : ", ivyAgent, " sent : ", msg)
+
+    #     if self.uavT0 < 0.0:
+    #         self.uavT0 = time.time() # not perfect but neither is pprz
+    #         print("Setting t0 : ", self.uavT0)
+
+    #     uavId = int(msg.split()[1].split("_")[0])
+    #     if not uavId in self.uavIDs:
+    #         print("Found UAV : ", uavId)
+    #         self.uavIDs.append(uavId)
+    #         self.launch_probe(uavId)
 
     def launch_probe(self, uavID):
         command = sh.Command(self.probeExePath)
@@ -78,7 +100,7 @@ class PPRZMesoNHLauncher:
         # command = command.bake(_bg=True, _bg_exc=False)
         self.probes.append(command(str(uavID),
                                    "-t", str(self.uavT0),
-                                   "-m",self.mesonhVariables,
+                                   "-m", self.mesonhVariables,
                                    "-f", self.mesonhFiles))
         print("Probe launch successfull (pid:"+str(self.probes[-1].pid)+")")
 
