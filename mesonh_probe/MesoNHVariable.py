@@ -20,9 +20,9 @@ class MesoNHVariable(PeriodicContainer):
     def __init__(self, atm, var, origin=Position(0.0,0.0,0.0,0.0)):
         super().__init__(NetCDFInterface(atm, var), [2,3])
         
-        self.mesonhOrigin = Position(atm.variables[tvar][0],
-                                     atm.variables[xvar][0],
-                                     atm.variables[yvar][0],
+        self.mesonhOrigin = Position(atm.variables[MesoNHVariable.tvar][0],
+                                     atm.variables[MesoNHVariable.xvar][0],
+                                     atm.variables[MesoNHVariable.yvar][0],
                                      0.0)
         self.origin = origin - self.mesonhOrigin
 
