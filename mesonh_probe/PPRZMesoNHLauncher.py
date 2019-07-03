@@ -18,7 +18,7 @@ class PPRZMesoNHLauncher:
         self.mesonhFiles     = mesonhFiles
         self.mesonhVariables = ['UT','VT','WT'] + mesonhVariables
         self.probeExePath = (os.path.dirname(os.path.realpath(__file__))
-                             + "/../exe/pprz_mesonh_probe.py")
+                             + "/../bin/pprz_mesonh_probe.py")
         self.probes = []
         self.uavT0 = -1.0
         self.uavIDs = []
