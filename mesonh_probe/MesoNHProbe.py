@@ -3,7 +3,8 @@ import time
 import scipy.interpolate as interp
 import math as m
 
-from .MesoNHVariable        import MesoNHVariable
+from nephelae_simulation.mesonh_interface import MesoNHVariable
+
 from .MultiCache            import MultiCache
 from .MesoNHDimensionHelper import MesoNHDimensionHelper
 
