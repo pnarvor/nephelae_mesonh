@@ -1,6 +1,4 @@
 from .Fancy                 import Fancy
-from .DoubleBufferedCache   import DoubleBufferedCache
-from .ProbeCache            import ProbeCache
 from .MultiCache            import MultiCache
 from .BiDirectionalLUT      import BiDirectionalLUT
 from .BiDirectionalLinear   import BiDirectionalLinear
