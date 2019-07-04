@@ -4,12 +4,15 @@ from scipy.interpolate import interp1d
 
 class AffineTransform:
     
+
     def __init__(self, alpha, beta):
         self.alpha = alpha
         self.beta  = beta
 
+
     def __call__(self, x):
         return self.alpha * x + self.beta
+
 
 class UnitsIndexConverter:
 
@@ -21,7 +24,8 @@ class UnitsIndexConverter:
 
     def __init__(self, dimSize):
         self.dimSize = dimSize
-    
+
+
     def to_unit(self, key):
         
         if isinstance(key, (int, float)):
@@ -37,7 +41,8 @@ class UnitsIndexConverter:
                 key_stop = self.to_unit(key.stop - 1) # -1 because python slice...
             return slice(key_start, key_stop, None)
         raise ValueError("key must be a slice or a numeric type.")
-    
+
+
     def to_index(self, key):
         
         if isinstance(key, (int, float)):
@@ -55,6 +60,7 @@ class UnitsIndexConverter:
         else:
             raise ValueError("key must be a slice or a numeric type.")
 
+
 class AffineDimension(UnitsIndexConverter):
 
     """
@@ -69,6 +75,7 @@ class AffineDimension(UnitsIndexConverter):
         self.toIndex = AffineTransform((self.dimSize - 1) / (dimSpan[-1] - dimSpan[0]),
                                        -dimSpan[0]*(self.dimSize - 1) / (dimSpan[-1] - dimSpan[0]))
 
+
 class LookupTableDimension(UnitsIndexConverter):
 
     """
@@ -81,13 +88,9 @@ class LookupTableDimension(UnitsIndexConverter):
 
         x_in = np.linspace(0, self.dimSize-1, len(inputToOutput))
 
-        print(x_in)
-        print(inputToOutput)
-        
-        # self.toUnit  = RegularGridInterpolator((x_in,), np.array(inputToOutput))
-        # self.toIndex = RegularGridInterpolator((np.array(inputToOutput),), x_in)
         self.toUnit  = interp1d(x_in, np.array(inputToOutput))
         self.toIndex = interp1d(np.array(inputToOutput), x_in)
+
 
 class DimensionHelper:
 
@@ -99,8 +102,10 @@ class DimensionHelper:
     def __init__(self):
        self.dims = []
 
-    def add_dimension(self, params, typ='affine', dimLen=None):
-        if typ == 'affine':
+
+    def add_dimension(self, params, typ='linear', dimLen=None):
+
+        if typ == 'linear':
             if dimLen is None:
                 dimLen = len(params)
             self.dims.append(AffineDimension([params[0], params[-1]], dimLen))
@@ -108,6 +113,7 @@ class DimensionHelper:
             self.dims.append(LookupTableDimension(params))
         else:
             raise ValueError("Invalid dimension type '" + typ + "'")
+
 
     def to_unit(self, keys):
 
@@ -122,6 +128,7 @@ class DimensionHelper:
         for key, dim in zip(keys, self.dims):
             res.append(dim.to_unit(key))
         return tuple(res)
+
 
     def to_index(self, keys):
         
