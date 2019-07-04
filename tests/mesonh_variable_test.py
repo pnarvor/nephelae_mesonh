@@ -47,32 +47,35 @@ dimHelper.add_dimension(zvar, 'LUT')
 dimHelper.add_dimension(xvar, 'linear')
 dimHelper.add_dimension(yvar, 'linear')
 
-# data0 = ScaledArray(atm.variables[var0], dimHelper, interpolation='nearest')
-# data1 = ScaledArray(atm.variables[var1], dimHelper, interpolation='nearest')
-# data0 = ScaledArray(atm.variables[var0], dimHelper, interpolation='linear')
-# data1 = ScaledArray(atm.variables[var1], dimHelper, interpolation='linear')
-
+# data0 = MesoNHVariable(atm, var0, interpolation='nearest')
+# data1 = MesoNHVariable(atm, var1, interpolation='nearest')
 data0 = MesoNHVariable(atm, var0, interpolation='linear')
 data1 = MesoNHVariable(atm, var1, interpolation='linear')
 
 z0 = 1100.0
 y0 = 4500.0
+xySlice = slice(0.0, 12000.0, None)
 tStart = time.time()
+
+xyBounds = data0[0.0,z0,xySlice,xySlice].bounds
+xyExtent = [xyBounds[0][0], xyBounds[0][1], xyBounds[1][0], xyBounds[1][1]]
+xzBounds = data0[0.0,:,xySlice,y0].bounds
+xzExtent = [xzBounds[1][0], xzBounds[1][1], xzBounds[0][0], xzBounds[0][1]]
 
 print('Started !')
 
 fig, axes = plt.subplots(2,2, sharex=True)
-varDisp0 = axes[0][0].imshow(data0[0.0,z0,:,:].data, cmap=plt.cm.viridis, origin='lower', extent=[xvar[0],xvar[-1],yvar[0],yvar[-1]])
-varDisp1 = axes[1][0].imshow(data0[0.0,:,y0,:].data, cmap=plt.cm.viridis, origin='lower', extent=[xvar[0],xvar[-1],zvar[0],zvar[-1]])
-varDisp2 = axes[0][1].imshow(data1[0.0,z0,:,:].data, cmap=plt.cm.viridis, origin='lower', extent=[xvar[0],xvar[-1],yvar[0],yvar[-1]])
-varDisp3 = axes[1][1].imshow(data1[0.0,:,y0,:].data, cmap=plt.cm.viridis, origin='lower', extent=[xvar[0],xvar[-1],zvar[0],zvar[-1]])
+varDisp0 = axes[0][0].imshow(data0[0.0, z0, xySlice, xySlice].data, cmap=plt.cm.viridis, origin='lower', extent=xyExtent)
+varDisp1 = axes[1][0].imshow(data0[0.0,  :,      y0, xySlice].data, cmap=plt.cm.viridis, origin='lower', extent=xzExtent)
+varDisp2 = axes[0][1].imshow(data1[0.0, z0, xySlice, xySlice].data, cmap=plt.cm.viridis, origin='lower', extent=xyExtent)
+varDisp3 = axes[1][1].imshow(data1[0.0,  :,      y0, xySlice].data, cmap=plt.cm.viridis, origin='lower', extent=xzExtent)
 
 def init():
 
-    axes[0][0].plot([xvar[0], xvar[-1]], [y0, y0], color=[0.0,0.0,0.0,1.0])
-    axes[1][0].plot([xvar[0], xvar[-1]], [z0, z0], color=[0.0,0.0,0.0,1.0])
-    axes[0][1].plot([xvar[0], xvar[-1]], [y0, y0], color=[0.0,0.0,0.0,1.0])
-    axes[1][1].plot([xvar[0], xvar[-1]], [z0, z0], color=[0.0,0.0,0.0,1.0])
+    axes[0][0].plot([xySlice.start, xySlice.stop], [y0, y0], color=[0.0,0.0,0.0,1.0])
+    axes[1][0].plot([xySlice.start, xySlice.stop], [z0, z0], color=[0.0,0.0,0.0,1.0])
+    axes[0][1].plot([xySlice.start, xySlice.stop], [y0, y0], color=[0.0,0.0,0.0,1.0])
+    axes[1][1].plot([xySlice.start, xySlice.stop], [z0, z0], color=[0.0,0.0,0.0,1.0])
 
 def update(i):
     
@@ -80,10 +83,11 @@ def update(i):
     t = fastForward*(time.time() - tStart)
     t = t - int(t / (tvar[-1] - tvar[0]))*(tvar[-1] - tvar[0])
 
-    varDisp0.set_data(data0[t,z0,:,:].data)
-    varDisp1.set_data(data0[t,:,y0,:].data)
-    varDisp2.set_data(data1[t,z0,:,:].data)
-    varDisp3.set_data(data1[t,:,y0,:].data)
+    varDisp0.set_data(data0[t, z0, xySlice, xySlice].data)
+    varDisp1.set_data(data0[t,  :,      y0, xySlice].data)
+    varDisp2.set_data(data1[t, z0, xySlice, xySlice].data)
+    varDisp3.set_data(data1[t,  :,      y0, xySlice].data)
+
     # time.sleep(0.1)
 
 anim = animation.FuncAnimation(
