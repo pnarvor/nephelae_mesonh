@@ -41,12 +41,6 @@ atmShape.y = len(yvar)
 
 print("Shape : (", atmShape.t, atmShape.z, atmShape.x, atmShape.y, ")")
 
-dimHelper = DimensionHelper()
-dimHelper.add_dimension(tvar, 'LUT')
-dimHelper.add_dimension(zvar, 'LUT')
-dimHelper.add_dimension(xvar, 'linear')
-dimHelper.add_dimension(yvar, 'linear')
-
 # data0 = MesoNHVariable(atm, var0, interpolation='nearest')
 # data1 = MesoNHVariable(atm, var1, interpolation='nearest')
 data0 = MesoNHVariable(atm, var0, interpolation='linear')
