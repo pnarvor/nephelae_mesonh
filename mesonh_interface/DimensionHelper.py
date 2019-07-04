@@ -91,6 +91,18 @@ class UnitsIndexConverter:
                     {'key':(highIndex,), 'weight':     lmbd}]
         else:
             raise ValueError("key must be a slice or a numeric type.")
+    
+
+    def bounds(self):
+
+        maxSlice = self.to_unit(slice(None,None,None))
+        return [maxSlice.start, maxSlice.stop]
+
+
+    def span(self):
+
+        bounds = self.bounds()
+        return bounds[-1] - bounds[0]
 
 
 class AffineDimension(UnitsIndexConverter):
@@ -259,4 +271,12 @@ class DimensionHelper:
             weightedKeys[-1] = newKeys
 
         return weightedKeys[0]
+
+
+    def bounds(self):
+        return [dim.bounds() for dim in self.dims]
+        
+
+    def span(self):
+        return [dim.span() for dim in self.dims]
 

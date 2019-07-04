@@ -29,6 +29,8 @@ dimHelper.add_dimension(y, 'linear')
 
 # scaledArray = ScaledArray(atm.variables['RCT'], dimHelper)
 scaledArray = ScaledArray(atm.variables['RCT'], dimHelper, interpolation='linear')
+print("bounds :", scaledArray.bounds)
+print("span   :", scaledArray.span)
 array0 = scaledArray[0.0, 1000.0, :, :]
 array2 = array0[:3000.0, :3000.0]
 array3 = array2[1500.0:, 1500.0:]

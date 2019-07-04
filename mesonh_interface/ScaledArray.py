@@ -30,7 +30,12 @@ class ScaledArray:
 
         if name == 'shape':
             return self.data.shape
-        raise ValueError("ScaledArray has no attribute '"+name+"'")
+        elif name == 'bounds':
+            return self.dimHelper.bounds()
+        elif name == 'span':
+            return self.dimHelper.span()
+        else:
+            raise ValueError("ScaledArray has no attribute '"+name+"'")
 
 
     def __getitem__(self, keys):
