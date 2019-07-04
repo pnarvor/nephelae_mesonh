@@ -1,4 +1,4 @@
-
+import numpy as np
 
 class ScaledArray:
 
@@ -16,10 +16,14 @@ class ScaledArray:
 
     """
 
-    def __init__(self, data, dimHelper=None):
+    def __init__(self, data, dimHelper, interpolation='nearest'):
 
-        self.data     = data
+        if interpolation not in ['nearest', 'linear']:
+            raise ValueError("interpolation parameter should be either " +
+                             "'nearest' or 'linear'")
+        self.data      = data
         self.dimHelper = dimHelper
+        self.interpolation = interpolation
 
 
     def __getattr__(self, name):
@@ -31,6 +35,21 @@ class ScaledArray:
 
     def __getitem__(self, keys):
 
-        return self.data[self.dimHelper.to_index(keys)]
+        if self.interpolation == 'nearest':
+            newData = np.squeeze(self.data[self.dimHelper.to_index(keys)])
+        elif self.interpolation == 'linear':
+            interpKeys = self.dimHelper.linear_interpolation_keys(keys)
+            newData = interpKeys[0]['weight']*np.array(self.data[interpKeys[0]['key']])
+            for interpKey in interpKeys[1:]:
+                newData = newData + interpKey['weight']*np.array(self.data[interpKey['key']])
+        else:
+            raise ValueError("self.interpolation parameter should be either "+
+                             "'nearest' or 'linear'")
+
+        newDims = self.dimHelper.subarray_dimensions(keys)
+        if not newDims.dims:
+            return float(newData) # newData contains a singleValue
+        else:
+            return ScaledArray(newData, newDims)
 
 

@@ -19,7 +19,10 @@ class UnitsIndexConverter:
     """UnitsIndexConverter
 
     Base class to transform a tuple of index based indexing to a 
-    tuple of units based indexing and vice-versa
+    tuple of units based indexing and vice-versa.
+
+    /!\ Is an abstract class. Concrete child classes must implement
+        toUnits(key) and toIndex(key).
     """
 
     def __init__(self, dimSize):
@@ -28,6 +31,8 @@ class UnitsIndexConverter:
 
     def to_unit(self, key):
         
+        # print("key :",key)
+        # print("type(key) :",type(key))
         if isinstance(key, (int, float)):
             return float(self.toUnit(key))
         elif type(key) == slice:
@@ -40,7 +45,8 @@ class UnitsIndexConverter:
             else:
                 key_stop = self.to_unit(key.stop - 1) # -1 because python slice...
             return slice(key_start, key_stop, None)
-        raise ValueError("key must be a slice or a numeric type.")
+        else:
+            raise ValueError("key must be a slice or a numeric type.")
 
 
     def to_index(self, key):
@@ -61,6 +67,44 @@ class UnitsIndexConverter:
             raise ValueError("key must be a slice or a numeric type.")
 
 
+    def linear_interpolation_indexes(self, key):
+        
+        """
+        If key is a scalar, returns two pairs (key, weight) which are 
+        to be used to compute a weighted sum of two elements in an array,
+        effectively computing a linear interpolation.
+        If key is a slice, returns a single pair (key, weight), with 
+        the key being self.to_index(key) and the weight being 1.0
+        (no interpolation if getting a non scalar subset of a dimension).
+
+        /!\ returned key must be insides tuples to be able to concatenate keys
+            cleanly.
+        """
+        # print("interp_indexes")
+        # print("key :",key)
+        # print("type(key) :",type(key))
+        if isinstance(key, slice):
+            output = [{'key':(self.to_index(key),), 'weight':1.0}]
+            # print("output :", output)
+            return [{'key':(self.to_index(key),), 'weight':1.0}]
+        elif isinstance(key, (int, float)):
+            lowIndex  = int(self.toIndex(key))
+            highIndex = lowIndex + 1
+            lowUnit   = self.to_unit(lowIndex)
+            highUnit  = self.to_unit(highIndex)
+            lmbd = (key - lowUnit) / (highUnit - lowUnit)
+            # print("indexes :", lowIndex, highIndex)
+            # print("units :", lowUnit, highUnit)
+            # print("lambda :", lmbd)
+            # output=[{'key':(lowIndex,),  'weight':     lmbd},
+            #         {'key':(highIndex,), 'weight': 1.0-lmbd}]
+            # print("output :", output)
+            return [{'key':(lowIndex,),  'weight':     lmbd},
+                    {'key':(highIndex,), 'weight': 1.0-lmbd}]
+        else:
+            raise ValueError("key must be a slice or a numeric type.")
+
+
 class AffineDimension(UnitsIndexConverter):
 
     """
@@ -74,6 +118,25 @@ class AffineDimension(UnitsIndexConverter):
         self.toUnit  = AffineTransform((dimSpan[-1] - dimSpan[0]) / (self.dimSize - 1), dimSpan[0])
         self.toIndex = AffineTransform((self.dimSize - 1) / (dimSpan[-1] - dimSpan[0]),
                                        -dimSpan[0]*(self.dimSize - 1) / (dimSpan[-1] - dimSpan[0]))
+
+    
+    def subdimension(self, key):
+        """Build a new AffineDimension which is a subset of self
+            
+            Return None if key is not a slice.
+            Returns a new AffineDimension if key is a slice.
+        """
+        
+        index = self.to_index(key)
+        if isinstance(index, int):
+            return None
+
+        # here index is a slice
+        if index.stop - index.start <= 1:
+            # Here key represent a single element
+            return None
+        units = self.to_unit(index) # recompute units for clean borders
+        return AffineDimension([units.start, units.stop], index.stop - index.start)
 
 
 class LookupTableDimension(UnitsIndexConverter):
@@ -90,6 +153,22 @@ class LookupTableDimension(UnitsIndexConverter):
 
         self.toUnit  = interp1d(x_in, np.array(inputToOutput))
         self.toIndex = interp1d(np.array(inputToOutput), x_in)
+
+
+    def subdimension(self, key):
+        """Build a new LookupTableDimension which is a subset of self
+            
+            Return None if key is not a slice. Returns a new AffineDimension instead.
+        """
+        
+        index = self.to_index(key)
+        if isinstance(index, int):
+            return None
+        # here index is a slice
+        if index.stop - index.start <= 1:
+            # Here key reresent a single element
+            return None
+        return LookupTableDimension(self.toUnits[index])
 
 
 class DimensionHelper:
@@ -111,6 +190,8 @@ class DimensionHelper:
             self.dims.append(AffineDimension([params[0], params[-1]], dimLen))
         elif typ == 'LUT':
             self.dims.append(LookupTableDimension(params))
+        elif typ == 'empty':
+            return
         else:
             raise ValueError("Invalid dimension type '" + typ + "'")
 
@@ -144,4 +225,55 @@ class DimensionHelper:
             res.append(dim.to_index(key))
         return tuple(res)
 
+    
+    def subarray_dimensions(self, keys):
+
+        """Compute the new DimensionHelper object associated to the subarray
+        corresponding to the keys.
+        """
+       
+        if len(keys) != len(self.dims):
+            raise ValueError("Number of keys must be equal to the number of" +
+                             " dimensions. (Got " +  str(len(keys)) + "/"
+                             + str(len(self.dims)) + ")")
+
+        newDims = DimensionHelper()
+        for key, dim in zip(keys, self.dims):
+            newDim = dim.subdimension(key)
+            if newDim is not None:
+                newDims.dims.append(newDim)
+        return newDims
+
+
+    def linear_interpolation_keys(self, keys):
+        
+        """ Returns a list of pairs of keys and weights to compute a linear
+        interpolation. The interpolation computation should read in the 
+        main array using generated keys and compute a weighted sum of the
+        resulting subrrays using the associated weights.
+        """
+        if len(keys) != len(self.dims):
+            raise ValueError("Number of keys must be equal to the number of" +
+                             " dimensions. (Got " +  str(len(keys)) + "/"
+                             + str(len(self.dims)) + ")")
+        
+        weightedKeys = []
+        for key, dim in zip(keys, self.dims):
+            weightedKeys.append(dim.linear_interpolation_indexes(key))
+            # print(type(key))
+        
+        # for keys in weightedKeys:
+        #     print(keys)
+        # print("\n\n")
+        while len(weightedKeys) > 1:
+            newKeys = []
+            for key1 in weightedKeys[-2]:
+                for key2 in weightedKeys[-1]:
+                    # print(key1, key2)
+                    newKeys.append({'key':key1['key'] + key2['key'],
+                                    'weight':key1['weight']*key2['weight']})
+            weightedKeys.pop(-1)
+            weightedKeys[-1] = newKeys
+
+        return weightedKeys[0]
 
