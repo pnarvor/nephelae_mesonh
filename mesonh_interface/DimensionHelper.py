@@ -31,8 +31,6 @@ class UnitsIndexConverter:
 
     def to_unit(self, key):
         
-        # print("key :",key)
-        # print("type(key) :",type(key))
         if isinstance(key, (int, float)):
             return float(self.toUnit(key))
         elif type(key) == slice:
@@ -80,12 +78,8 @@ class UnitsIndexConverter:
         /!\ returned key must be insides tuples to be able to concatenate keys
             cleanly.
         """
-        # print("interp_indexes")
-        # print("key :",key)
-        # print("type(key) :",type(key))
         if isinstance(key, slice):
             output = [{'key':(self.to_index(key),), 'weight':1.0}]
-            # print("output :", output)
             return [{'key':(self.to_index(key),), 'weight':1.0}]
         elif isinstance(key, (int, float)):
             lowIndex  = int(self.toIndex(key))
@@ -93,12 +87,6 @@ class UnitsIndexConverter:
             lowUnit   = self.to_unit(lowIndex)
             highUnit  = self.to_unit(highIndex)
             lmbd = (key - lowUnit) / (highUnit - lowUnit)
-            # print("indexes :", lowIndex, highIndex)
-            # print("units :", lowUnit, highUnit)
-            # print("lambda :", lmbd)
-            # output=[{'key':(lowIndex,),  'weight':     lmbd},
-            #         {'key':(highIndex,), 'weight': 1.0-lmbd}]
-            # print("output :", output)
             return [{'key':(lowIndex,),  'weight':     lmbd},
                     {'key':(highIndex,), 'weight': 1.0-lmbd}]
         else:
@@ -260,16 +248,11 @@ class DimensionHelper:
         weightedKeys = []
         for key, dim in zip(keys, self.dims):
             weightedKeys.append(dim.linear_interpolation_indexes(key))
-            # print(type(key))
         
-        # for keys in weightedKeys:
-        #     print(keys)
-        # print("\n\n")
         while len(weightedKeys) > 1:
             newKeys = []
             for key1 in weightedKeys[-2]:
                 for key2 in weightedKeys[-1]:
-                    # print(key1, key2)
                     newKeys.append({'key':key1['key'] + key2['key'],
                                     'weight':key1['weight']*key2['weight']})
             weightedKeys.pop(-1)
