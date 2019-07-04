@@ -11,6 +11,7 @@ from netCDF4 import MFDataset
 
 from nephelae_simulation.mesonh_interface import ScaledArray
 from nephelae_simulation.mesonh_interface import DimensionHelper
+from nephelae_simulation.mesonh_interface import MesoNHVariable
 
 var0 = 'RCT'
 # var1 = 'UT'     # WE wind
@@ -48,8 +49,11 @@ dimHelper.add_dimension(yvar, 'linear')
 
 # data0 = ScaledArray(atm.variables[var0], dimHelper, interpolation='nearest')
 # data1 = ScaledArray(atm.variables[var1], dimHelper, interpolation='nearest')
-data0 = ScaledArray(atm.variables[var0], dimHelper, interpolation='linear')
-data1 = ScaledArray(atm.variables[var1], dimHelper, interpolation='linear')
+# data0 = ScaledArray(atm.variables[var0], dimHelper, interpolation='linear')
+# data1 = ScaledArray(atm.variables[var1], dimHelper, interpolation='linear')
+
+data0 = MesoNHVariable(atm, var0, interpolation='linear')
+data1 = MesoNHVariable(atm, var1, interpolation='linear')
 
 z0 = 1100.0
 y0 = 4500.0
@@ -90,3 +94,6 @@ anim = animation.FuncAnimation(
     interval = 1)
 
 plt.show(block=False)
+
+
+
