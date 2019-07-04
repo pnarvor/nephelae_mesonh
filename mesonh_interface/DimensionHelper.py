@@ -87,8 +87,8 @@ class UnitsIndexConverter:
             lowUnit   = self.to_unit(lowIndex)
             highUnit  = self.to_unit(highIndex)
             lmbd = (key - lowUnit) / (highUnit - lowUnit)
-            return [{'key':(lowIndex,),  'weight':     lmbd},
-                    {'key':(highIndex,), 'weight': 1.0-lmbd}]
+            return [{'key':(lowIndex,),  'weight': 1.0-lmbd},
+                    {'key':(highIndex,), 'weight':     lmbd}]
         else:
             raise ValueError("key must be a slice or a numeric type.")
 
@@ -156,7 +156,7 @@ class LookupTableDimension(UnitsIndexConverter):
         if index.stop - index.start <= 1:
             # Here key reresent a single element
             return None
-        return LookupTableDimension(self.toUnits[index])
+        return LookupTableDimension(self.toUnit.y[index])
 
 
 class DimensionHelper:
