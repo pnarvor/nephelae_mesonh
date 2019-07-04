@@ -44,9 +44,9 @@ class ScaledArray:
             newData = np.squeeze(self.data[self.dimHelper.to_index(keys)])
         elif self.interpolation == 'linear':
             interpKeys = self.dimHelper.linear_interpolation_keys(keys)
-            newData = interpKeys[0]['weight']*np.array(self.data[interpKeys[0]['key']])
+            newData = interpKeys[0]['weight']*np.squeeze(self.data[interpKeys[0]['key']])
             for interpKey in interpKeys[1:]:
-                newData = newData + interpKey['weight']*np.array(self.data[interpKey['key']])
+                newData = newData + interpKey['weight']*np.squeeze(self.data[interpKey['key']])
         else:
             raise ValueError("self.interpolation parameter should be either "+
                              "'nearest' or 'linear'")
