@@ -20,14 +20,14 @@ class MesoNHCachedProbe:
 
         self.var = mesonhVariable
         self.cacheBounds = [DimensionBounds([b[0],b[-1]]) for b in cacheBounds]
-        self.thresholdValues = [triggerthreshold*(b.max-b.min) for b in self.cacheBounds]
+        self.thresholdValues = [triggerThreshold*(b.max-b.min) for b in self.cacheBounds]
 
         self.cache      = None
         self.updateKeys = None
 
         self.running      = False
         self.updateLock   = threading.Condition(threading.Lock())
-        self.updateThread = threading.Thread(target=self.update_work())
+        self.updateThread = threading.Thread(target=self.update_work)
     
 
     def request_cache_update(self, keys, block=False):
@@ -47,17 +47,13 @@ class MesoNHCachedProbe:
                 # Direct load if block == True
                 # for initialization purposes
                 if block:
-                    self.cache = self.mesonhVariable[self.updateKeys]
+                    self.cache = self.var[self.updateKeys]
                     self.updateKeys = None
-                    self.updateLock.release()
                     return
 
-                if not self.must_update_cache(self, self.updateKeys):
-                    self.updateLock.release()
+                if not self.must_update_cache(self.updateKeys):
                     return
                 self.updateLock.notifyAll()
-            except Exception as e:
-                raise e
             finally:
                 self.updateLock.release()
 
@@ -72,7 +68,7 @@ class MesoNHCachedProbe:
             return True
 
         if any([b.min - key.start > th or key.stop - b.max > th
-               for b,key,th in zip(self.cache.bounds, keys, self.thresholdValues]):
+               for b,key,th in zip(self.cache.bounds, keys, self.thresholdValues)]):
             return True
         else:
             return False
@@ -91,7 +87,7 @@ class MesoNHCachedProbe:
             with self.updateLock:
                 if self.updateKeys is not None:
                     # if there is something to load do:
-                    self.cache = self.mesonhVariable[self.updateKeys]
+                    self.cache = self.var[self.updateKeys]
                     self.updateKeys = None
                 # will wait until notified by self.cache_update
                 self.updateLock.wait()
@@ -110,7 +106,7 @@ class MesoNHCachedProbe:
 
 
     def __getitem__(self, keys):
-
+        
         self.request_cache_update(keys, block=False)
         return self.cache[keys]
 
