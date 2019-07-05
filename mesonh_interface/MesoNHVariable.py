@@ -54,6 +54,12 @@ class MesoNHVariable(ScaledArray):
             NbDim sized list holding the length of each dimension.
 
 
+        actual_range (numpy array):
+
+            Min and max of MesoNH variable.
+            (wrapper around netCDF4.variables[var].actual_range)
+
+
     Member functions:
     
         
