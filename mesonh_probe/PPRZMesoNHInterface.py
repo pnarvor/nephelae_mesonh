@@ -5,28 +5,26 @@ from netCDF4 import MFDataset
 import utm
 import time
 
-from .MesoNHProbe import MesoNHProbe
-from .Fancy       import Fancy
-
-# PPRZ_HOME = os.getenv("PAPARAZZI_HOME")
-# sys.path.append(PPRZ_HOME + "/var/lib/python")
-# from pprzlink.ivy import IvyMessagesInterface
-# from pprzlink.message import PprzMessage
+from nephelae_simulation.mesonh_interface import MesoNHVariable
+from .MesoNHCachedProbe import MesoNHCachedProbe
+from .Fancy             import Fancy
 
 from ivy.std_api import *
 import logging
 
-class PPRZMesoNHInterface(MesoNHProbe):
+class PPRZMesoNHInterface:
 
 
     def __init__(self, uavPid, t0, mesonhFiles, mesoNHVariables,
-                 targetCacheSpan=Fancy()[20, -0.2:0.1, -0.2:0.2, -0.2:0.2],
+                 targetCacheBounds=[[0,20],[-200,100],[-200,200],[-200,200]],
                  updateThreshold=0.0):
 
-        self.mesonhProbe = MesoNHProbe(MFDataset(mesonhFiles),
-                                       mesoNHVariables,
-                                       targetCacheSpan,
-                                       updateThreshold)
+        self.atm    = MFDataset(mesonhFiles)
+        self.probes = [MesoNHCachedProbe(
+                            MesoNHVariable(self.atm, var, interpolation='linear'),
+                            targetCacheBounds, 0.25)
+                            for var in mesoNHVariables]
+
         self.uavPid          = uavPid
         self.t0              = t0
         self.currentPosition = []
@@ -45,9 +43,11 @@ class PPRZMesoNHInterface(MesoNHProbe):
         except Exception as e:
             print("PPRZMesoNHInterface.__init__ : \"" + str(e) + "\"")
 
+
     def read_callback_world(self, ivyAgent, msg):
         
-        t = self.mesonhProbe.t0 + time.time() - self.t0
+        # t = self.mesonhProbe.t0 + time.time() - self.t0
+        t = time.time() - self.t0
         print("Agent \""+str(ivyAgent)+"\" sent : ", msg)
 
         try:
@@ -55,30 +55,27 @@ class PPRZMesoNHInterface(MesoNHProbe):
             uavPid = int(words[1].split("_")[0])
             if not uavPid == self.uavPid:
                 return
-            # /!\ Mesonh dimensions are in km ...
-            # To be checked for reusability
-            position = Fancy()[t,\
-                               float(words[6]) / 1.0e3,\
-                               float(words[7]) / 1.0e3,\
-                               float(words[5]) / 1.0e3]
+
+            # MesoNH access is [t,z,y,x]
+            position = Fancy()[t,float(words[5]),float(words[7]),float(words[6])]
             if not self.initialized:
                 print("Initialization... ", end='')
-                self.mesonhProbe.update_cache(position, blocking=True)
+                for probe in self.probes:
+                    probe.request_cache_update(position, block=True)
                 self.initialized = True
                 print("Complete !")
-                return
-            if not self.initialized:
                 return
 
             values = []
             try:
-                values = self.mesonhProbe[position]
+                values = [probe[position] for probe in self.probes]
             except Exception as e:
+                # raise e
                 print("Could not read : ", e)
                 print("Position : ", position)
                 return
 
-            # print("Read : ", position, ", ", values)
+            print("Read : ", position, ", ", values)
             
             if not self.stopping:
                 response = (words[1] + " " + words[0] + " WORLD_ENV "
@@ -97,7 +94,14 @@ class PPRZMesoNHInterface(MesoNHProbe):
             print("Response : ", response)
             IvySendMsg(response)
         except Exception as e:
-            print("world exception : ", e)
+            raise e
+            # print("world exception : ", e)
+    
+
+    def start(self):
+        for probe in self.probes:
+            probe.start()
+        
 
     def stop(self):
         print("\nShutting down... ", end="")
@@ -109,5 +113,6 @@ class PPRZMesoNHInterface(MesoNHProbe):
                     break
                 time.sleep(0.1)
         IvyStop()
-        self.mesonhProbe.stop()
+        for probe in self.probes:
+            probe.stop()
         print("Complete.")
