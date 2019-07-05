@@ -79,6 +79,12 @@ class MesoNHVariable(ScaledArray):
             /!\ x and y dimensions are periodic by default. The x and y
             parameters will accept any values.
             t,z,y,x can be either a float or a slice(float,float,None).
+
+            /!\ There is not guaranty that the output bounds are exactly 
+                the one given by a slice. The ouput bounds are the ones
+                corresponding exaclty to the closest array elements.
+                (underlying array is still discretized and each "pixel"
+                has a fixed dimension "coordinate")
     """
 
     tvar = 'time'
