@@ -136,6 +136,14 @@ class MesoNHVariable(ScaledArray):
     #     
     #     return super().__getitem__((keys[0],keys[3],keys[2],keys[1]))
 
+    def __getattr__(self, name):
+
+        if name == 'actual_range':
+            # Wrapper around MFDataset.variables['var'].actual_range
+            return self.data.data.varData.actual_range
+        else:
+            return super().__getattr__(name)
+
 
     def __getitem__(self, keys):
 
