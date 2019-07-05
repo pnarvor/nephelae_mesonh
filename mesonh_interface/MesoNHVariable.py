@@ -158,6 +158,14 @@ class MesoNHVariable(ScaledArray):
         /!\ BUT WILL CROP THE KEYS TO FIT INTO THE ARRAY.
         """
 
+        # not croping dim[2,3] because these dimensions are periodic in MesoNH
+        return super().__getitem__(self.crop_keys(keys))
+
+
+    def crop_keys(self, keys):
+
+        """Crops keys to self.bounds"""
+
         def crop_key(key, bounds):
             if isinstance(key, (int, float)):
                 # If key is a single index not in bounds, always throw exception.
@@ -191,8 +199,6 @@ class MesoNHVariable(ScaledArray):
                 raise ValueError("Index should be either a numeric type or a slice")
         
         bounds = self.bounds
-        # not croping dim[2,3] because these dimensions are periodic in MesoNH
-        return super().__getitem__((crop_key(keys[0], bounds[0]),
-                                    crop_key(keys[1], bounds[1]),
-                                    keys[2], keys[3]))
-    
+        return (crop_key(keys[0], bounds[0]),
+                crop_key(keys[1], bounds[1]),
+                keys[2], keys[3])
