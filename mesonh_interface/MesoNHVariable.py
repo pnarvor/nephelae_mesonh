@@ -161,7 +161,7 @@ class MesoNHVariable(ScaledArray):
         def crop_key(key, bounds):
             if isinstance(key, (int, float)):
                 # If key is a single index not in bounds, always throw exception.
-                if key < bounds[0] or key > bounds[-1]:
+                if key < bounds.min or key > bounds.max:
                     raise IndexError("key " + str(key) + " is out of bounds ("
                                      + str(bounds) + ")")
                 else:
@@ -170,22 +170,22 @@ class MesoNHVariable(ScaledArray):
                 # If key is a slice then crop slice into bounds if possible.
                 # If not possible, throw exception.
                 if key.start is None:
-                    key_start = bounds[0]
+                    key_start = bounds.min
                 else:
                     key_start = key.start
 
                 if key.stop is None:
-                    key_stop = bounds[-1]
+                    key_stop = bounds.max
                 else:
                     key_stop = key.stop
 
-                if key_stop < bounds[0] or key_start > bounds[-1]:
+                if key_stop < bounds.min or key_start > bounds.max:
                     raise IndexError("key " + str(key) + " is out of bounds ("
                                      + str(bounds) + ")")
-                if key_start < bounds[0]:
-                    key_start = bounds[0]
-                if key_stop > bounds[-1]:
-                    key_stop = bounds[-1]
+                if key_start < bounds.min:
+                    key_start = bounds.min
+                if key_stop > bounds.max:
+                    key_stop = bounds.max
                 return slice(key_start, key_stop, None)
             else:
                 raise ValueError("Index should be either a numeric type or a slice")
