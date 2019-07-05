@@ -46,23 +46,26 @@ print("Shape : (", atmShape.t, atmShape.z, atmShape.x, atmShape.y, ")")
 data0 = MesoNHVariable(atm, var0, interpolation='linear')
 data1 = MesoNHVariable(atm, var1, interpolation='linear')
 
-z0 = 1100.0
+# z0 = 1100.0
+z0 = 1280.0
 y0 = 4500.0
 xySlice = slice(0.0, 12000.0, None)
+# zSlice = slice(None, None, None)
+zSlice = slice(0.0, 12000.0, None)
 tStart = time.time()
 
 xyBounds = data0[0.0,z0,xySlice,xySlice].bounds
 xyExtent = [xyBounds[0][0], xyBounds[0][1], xyBounds[1][0], xyBounds[1][1]]
-xzBounds = data0[0.0,:,xySlice,y0].bounds
+xzBounds = data0[0.0,zSlice,xySlice,y0].bounds
 xzExtent = [xzBounds[1][0], xzBounds[1][1], xzBounds[0][0], xzBounds[0][1]]
 
 print('Started !')
 
 fig, axes = plt.subplots(2,2, sharex=True)
-varDisp0 = axes[0][0].imshow(data0[0.0, z0, xySlice, xySlice].data, cmap=plt.cm.viridis, origin='lower', extent=xyExtent)
-varDisp1 = axes[1][0].imshow(data0[0.0,  :,      y0, xySlice].data, cmap=plt.cm.viridis, origin='lower', extent=xzExtent)
-varDisp2 = axes[0][1].imshow(data1[0.0, z0, xySlice, xySlice].data, cmap=plt.cm.viridis, origin='lower', extent=xyExtent)
-varDisp3 = axes[1][1].imshow(data1[0.0,  :,      y0, xySlice].data, cmap=plt.cm.viridis, origin='lower', extent=xzExtent)
+varDisp0 = axes[0][0].imshow(data0[0.0,     z0, xySlice, xySlice].data, cmap=plt.cm.viridis, origin='lower', extent=xyExtent)
+varDisp1 = axes[1][0].imshow(data0[0.0, zSlice,      y0, xySlice].data, cmap=plt.cm.viridis, origin='lower', extent=xzExtent)
+varDisp2 = axes[0][1].imshow(data1[0.0,     z0, xySlice, xySlice].data, cmap=plt.cm.viridis, origin='lower', extent=xyExtent)
+varDisp3 = axes[1][1].imshow(data1[0.0, zSlice,      y0, xySlice].data, cmap=plt.cm.viridis, origin='lower', extent=xzExtent)
 
 def init():
 
@@ -77,10 +80,10 @@ def update(i):
     t = fastForward*(time.time() - tStart)
     t = t - int(t / (tvar[-1] - tvar[0]))*(tvar[-1] - tvar[0])
 
-    varDisp0.set_data(data0[t, z0, xySlice, xySlice].data)
-    varDisp1.set_data(data0[t,  :,      y0, xySlice].data)
-    varDisp2.set_data(data1[t, z0, xySlice, xySlice].data)
-    varDisp3.set_data(data1[t,  :,      y0, xySlice].data)
+    varDisp0.set_data(data0[t,     z0, xySlice, xySlice].data)
+    varDisp1.set_data(data0[t, zSlice,      y0, xySlice].data)
+    varDisp2.set_data(data1[t,     z0, xySlice, xySlice].data)
+    varDisp3.set_data(data1[t, zSlice,      y0, xySlice].data)
 
     # time.sleep(0.1)
 

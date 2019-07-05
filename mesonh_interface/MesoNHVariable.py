@@ -137,3 +137,48 @@ class MesoNHVariable(ScaledArray):
     #     return super().__getitem__((keys[0],keys[3],keys[2],keys[1]))
 
 
+    def __getitem__(self, keys):
+
+        """
+        /!\ This is essentially a wrapper around ScaledArray
+        /!\ BUT WILL CROP THE KEYS TO FIT INTO THE ARRAY.
+        """
+
+        def crop_key(key, bounds):
+            if isinstance(key, (int, float)):
+                # If key is a single index not in bounds, always throw exception.
+                if key < bounds[0] or key > bounds[-1]:
+                    raise IndexError("key " + str(key) + " is out of bounds ("
+                                     + str(bounds) + ")")
+                else:
+                    return key
+            elif isinstance(key, slice):
+                # If key is a slice then crop slice into bounds if possible.
+                # If not possible, throw exception.
+                if key.start is None:
+                    key_start = bounds[0]
+                else:
+                    key_start = key.start
+
+                if key.stop is None:
+                    key_stop = bounds[-1]
+                else:
+                    key_stop = key.stop
+
+                if key_stop < bounds[0] or key_start > bounds[-1]:
+                    raise IndexError("key " + str(key) + " is out of bounds ("
+                                     + str(bounds) + ")")
+                if key_start < bounds[0]:
+                    key_start = bounds[0]
+                if key_stop > bounds[-1]:
+                    key_stop = bounds[-1]
+                return slice(key_start, key_stop, None)
+            else:
+                raise ValueError("Index should be either a numeric type or a slice")
+        
+        bounds = self.bounds
+        # not croping dim[2,3] because these dimensions are periodic in MesoNH
+        return super().__getitem__((crop_key(keys[0], bounds[0]),
+                                    crop_key(keys[1], bounds[1]),
+                                    keys[2], keys[3]))
+    
