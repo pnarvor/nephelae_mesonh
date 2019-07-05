@@ -114,11 +114,14 @@ class UnitsIndexConverter:
         elif isinstance(key, (int, float)):
             lowIndex  = int(self.toIndex(key))
             highIndex = lowIndex + 1
-            lowUnit   = self.to_unit(lowIndex)
-            highUnit  = self.to_unit(highIndex)
-            lmbd = (key - lowUnit) / (highUnit - lowUnit)
-            return [{'key':(lowIndex,),  'weight': 1.0-lmbd},
-                    {'key':(highIndex,), 'weight':     lmbd}]
+            try:
+                lowUnit   = self.to_unit(lowIndex)
+                highUnit  = self.to_unit(highIndex)
+                lmbd = (key - lowUnit) / (highUnit - lowUnit)
+                return [{'key':(lowIndex,),  'weight': 1.0-lmbd},
+                        {'key':(highIndex,), 'weight':     lmbd}]
+            except:
+                return [{'key':(lowIndex,),  'weight': 1.0}]
         else:
             raise ValueError("key must be a slice or a numeric type.")
     
@@ -168,7 +171,6 @@ class AffineDimension(UnitsIndexConverter):
         units = self.to_unit(index) # recompute units for clean borders
         return AffineDimension([units.start, units.stop], index.stop - index.start)
 
-
 class LookupTableDimension(UnitsIndexConverter):
 
     """
@@ -179,7 +181,7 @@ class LookupTableDimension(UnitsIndexConverter):
     def __init__(self, inputToOutput):
         super().__init__(len(inputToOutput))
 
-        x_in = np.linspace(0, self.dimSize-1, len(inputToOutput))
+        x_in = np.linspace(0, self.dimSize-1, self.dimSize)
 
         self.toUnit  = interp1d(x_in, np.array(inputToOutput))
         self.toIndex = interp1d(np.array(inputToOutput), x_in)
