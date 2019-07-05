@@ -12,10 +12,73 @@ class MesoNHVariable(ScaledArray):
     """MesoNHVariable
 
     Helper class to access MesoNH data using space coordinates
-    instead of indexes
+    instead of indexes.
 
     /!\ Reading is done using this order : [t,z,y,x]
 
+    Attributes (inherited form mesonh_interface.ScaledArray):
+
+
+        data (numpy like array): 
+
+            Array holding the data. Is a instance of PeriodicContainer.
+            (the last two dimensions are periodic).
+            Defines self.__getitem__ and self.shape
+
+
+        dimHelper (mesonh_interface.DimensionHelper):
+
+            Helper class converting "unit" indices (in meters, seconds)
+            in indexes to read in self.data.
+       
+        
+        interpolation (string):
+
+            Contains the interpolation type. (Can be nearest of linear).
+
+        
+        shape (tuple(int)): (Implemented in __getattr__)
+            
+            Getter to self.data.shape
+        
+
+        bounds (list(list(float))): (Implemented in __getattr__)
+
+            NbDim x 2 nested list. First element of each nested list is the
+            lowest bound of the dimension, and last element is the highest.
+            (TODO define a specific type for this ?)
+            
+        
+        span (list(float)): (Implemented in __getattr__)
+
+            NbDim sized list holding the length of each dimension.
+
+
+    Member functions:
+    
+        
+        __init__(atm, var, origin, interpolation):
+
+            atm: (netCDF4.MFDataset) ALREADY OPENED to allow for several 
+                 MesoNHVariables on the same MFDataset. (Is thread
+                 protected by a mutex if only opened by MesoNHVariable types).
+            
+            var: (string) Variable to read in the MFDataset.
+
+            origin: (list(float)) Origin to give to the variable access.
+                    /!\ (Event without specifying an origin, the time origin is 
+                    always set to 0 regardless of the MFDataset time origin)
+
+            interpolation: ('nearest' or 'linear') Specify the interpolation
+                           type to use when reading the data.
+
+        
+        __getitem__([t,z,y,x]):
+            
+            Access the data using a tuple of floats or slice(float).
+            /!\ x and y dimensions are periodic by default. The x and y
+            parameters will accept any values.
+            t,z,y,x can be either a float or a slice(float,float,None).
     """
 
     tvar = 'time'
@@ -37,10 +100,10 @@ class MesoNHVariable(ScaledArray):
         
         # Reset origin if given
         if origin is not None:
-            tdim = tdim - tdim[0] + origin.t
-            xdim = xdim - xdim[0] + origin.x
-            ydim = ydim - ydim[0] + origin.y
-            zdim = zdim - zdim[0] + origin.z
+            tdim = tdim - tdim[0] + origin[0]
+            xdim = xdim - xdim[0] + origin[1]
+            ydim = ydim - ydim[0] + origin[2]
+            zdim = zdim - zdim[0] + origin[3]
         
         dimHelper = DimensionHelper()
         dimHelper.add_dimension(tdim, 'LUT')
