@@ -9,6 +9,9 @@ import time
 
 import mesonh_probe as cdf
 
+from ivy.std_api import *
+import logging
+
 parser = argparse.ArgumentParser()
 parser.add_argument("uav_id", type=int,
                     help="Paparazzi sim UAV id to get GPS message from")
@@ -36,6 +39,10 @@ if args.t0_sim is None:
 else:
     t0 = args.t0_sim
 
+IvyInit("MesoNHSensors_" + str(os.getpid()))
+# set log level to hide INFO stdout messages
+logging.getLogger('Ivy').setLevel(logging.WARN) 
+IvyStart("127.255.255.255:2010")
 
 probe = cdf.PPRZMesoNHInterface(args.uav_id, t0,
                                 args.mesonh_files, args.mesonh_variables)
@@ -44,6 +51,7 @@ probe.start()
 def signal_handler(signal, frame):
     print("Try stop")
     probe.stop()
+    IvyStop()
     exit()
 signal.signal(signal.SIGINT, signal_handler)
 

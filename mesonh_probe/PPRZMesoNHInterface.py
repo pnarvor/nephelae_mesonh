@@ -6,11 +6,11 @@ import utm
 import time
 
 from nephelae_simulation.mesonh_interface import MesoNHVariable
+from nephelae_paparazzi.pprzinterface.messages import Message
+from nephelae_paparazzi.pprzinterface.messages import WorldEnvReq
+from nephelae_paparazzi.pprzinterface.messages import WorldEnv
 from .MesoNHCachedProbe import MesoNHCachedProbe
 from .Fancy             import Fancy
-
-from ivy.std_api import *
-import logging
 
 class PPRZMesoNHInterface:
 
@@ -32,71 +32,45 @@ class PPRZMesoNHInterface:
         self.stopping        = False
         self.stopped         = False
 
-        IvyInit("MesoNHSensors_" + str(os.getpid()))
-        # set log level to hide INFO stdout messages
-        logging.getLogger('Ivy').setLevel(logging.WARN) 
-        IvyStart("127.255.255.255:2010")
-        try:
-            self.reqBind = IvyBindMsg(lambda agent, msg: self.read_callback_world(agent, msg),
-                                      # '(.* ' + str(self.uavPid) + '.*  WORLD_ENV_REQ .*)')
-                                      '(.* ' + str(self.uavPid) + '_\d+ WORLD_ENV_REQ .*)')
-        except Exception as e:
-            print("PPRZMesoNHInterface.__init__ : \"" + str(e) + "\"")
+        self.reqBind = WorldEnvReq.bind(self.read_callback_world, self.uavPid)
 
 
-    def read_callback_world(self, ivyAgent, msg):
+    def read_callback_world(self, msg):
         
-        # t = self.mesonhProbe.t0 + time.time() - self.t0
-        t = time.time() - self.t0
-        print("Agent \""+str(ivyAgent)+"\" sent : ", msg)
+        print(msg)
+        t = msg.stamp - self.t0
 
+        position = Fancy()[t,msg.alt, msg.utm_north, msg.utm_east]
+        if not self.initialized:
+            print("Initialization... ", end='')
+            for probe in self.probes:
+                probe.request_cache_update(position, block=True)
+            self.initialized = True
+            print("Complete !")
+            return
+
+        values = []
         try:
-            words = msg.split(' ')
-            uavPid = int(words[1].split("_")[0])
-            if not uavPid == self.uavPid:
-                return
-
-            # MesoNH access is [t,z,y,x]
-            position = Fancy()[t,float(words[5]),float(words[7]),float(words[6])]
-            if not self.initialized:
-                print("Initialization... ", end='')
-                for probe in self.probes:
-                    probe.request_cache_update(position, block=True)
-                self.initialized = True
-                print("Complete !")
-                return
-
-            values = []
-            try:
-                values = [probe[position] for probe in self.probes]
-            except Exception as e:
-                # raise e
-                print("Could not read : ", e)
-                print("Position : ", position)
-                return
-
-            print("Read : ", position, ", ", values)
-            
-            if not self.stopping:
-                response = (words[1] + " " + words[0] + " WORLD_ENV "
-                            + str(values[0]) + " "
-                            + str(values[1]) + " "
-                            + str(values[2]) + " 266.0 1.0 1")
-            else:
-                # sending 0s for stopping wind
-                if self.reqBind is not None:
-                    IvyUnBindMsg(self.reqBind)
-                    self.reqBind = None
-                response = (words[1] + " " + words[0] + " WORLD_ENV "
-                            + str(0.0) + " " + str(0.0) + " " + str(0.0)
-                            + " 266.0 1.0 1")
-                self.stopped = True
-            print("Response : ", response)
-            IvySendMsg(response)
+            values = [probe[position] for probe in self.probes]
         except Exception as e:
-            raise e
-            # print("world exception : ", e)
-    
+            # raise e
+            print("Could not read : ", e)
+            print("Position : ", position)
+            return
+
+        print("Read : ", position, ", ", values, end="\n\n")
+        
+        if not self.stopping:
+            response = WorldEnv.build(msg, values[0], values[1], values[2])
+        else:
+            # sending 0s for stopping wind
+            if self.reqBind is not None:
+                Message.unbind(self.reqBind)
+                self.reqBind = None
+            response = WorldEnv.build(msg, 0.0, 0.0, 0.0)
+            self.stopped = True
+        print("Response : ", response)
+        response.send() 
 
     def start(self):
         for probe in self.probes:
@@ -112,7 +86,6 @@ class PPRZMesoNHInterface:
                 if self.stopped:
                     break
                 time.sleep(0.1)
-        IvyStop()
         for probe in self.probes:
             probe.stop()
         print("Complete.")
