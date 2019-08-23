@@ -1,7 +1,7 @@
 import threading
 import time
 
-from nephelae_simulation.mesonh_interface import DimensionBounds
+from nephelae.array import DimensionBounds
 
 class MesoNHCachedProbe:
 

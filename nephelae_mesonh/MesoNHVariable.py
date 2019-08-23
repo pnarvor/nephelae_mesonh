@@ -1,11 +1,9 @@
 import numpy as np
 
-from .NetCDFInterface   import NetCDFInterface
-from .PeriodicContainer import PeriodicContainer
-from .ScaledArray       import ScaledArray
-from .DimensionHelper   import DimensionHelper
+from nephelae.types import Position
+from nephelae.array import DimensionHelper, PeriodicContainer, ScaledArray
 
-from nephelae_base.types import Position
+from .NetCDFInterface import NetCDFInterface
 
 class MesoNHVariable(ScaledArray):
 
@@ -130,6 +128,7 @@ class MesoNHVariable(ScaledArray):
     
 
     # CANNOT DO THIS BECAUSE SUBARRAY INHERITS DIMENSIONNAL STRUCTURE
+    # Implement this in NetCDFInterface
     # def __getitem__(self, keys):
 
     #     # Had to overload ScaledArray.__getitem__ because of
