@@ -9,9 +9,9 @@ from   matplotlib import animation
 
 from netCDF4 import MFDataset
 
-from nephelae_simulation.mesonh_interface import ScaledArray
-from nephelae_simulation.mesonh_interface import DimensionHelper
-from nephelae_simulation.mesonh_interface import MesoNHVariable
+from nephelae.array import ScaledArray
+from nephelae.array import DimensionHelper
+from nephelae_mesonh import MesoNHVariable
 
 var0 = 'RCT'
 # var1 = 'UT'     # WE wind
