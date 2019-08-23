@@ -1,6 +1,4 @@
 numpy
 scipy
 netCDF4
-utm
-ivy-python
 matplotlib
