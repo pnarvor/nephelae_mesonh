@@ -1,0 +1,2 @@
+Remove nephelae.array.DimensionHelper.DimensionBounds type in favor of nephelae.types.Bounds type
+MesoNH cached probe can probably be a more generic type (take a mesonhVariable as input like an array)
