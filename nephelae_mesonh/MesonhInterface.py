@@ -9,6 +9,8 @@ class MesonhInterface:
     Is thread safe for array read when using __getitem__.
     """
 
+    lock = threading.Lock()
+
     def __init__(self, mesonhDataset, mesonhVariables):
 
         """
@@ -33,14 +35,13 @@ class MesonhInterface:
             shape.append(len(self.mesonhDataset.dimensions[dim]))
         self.shape = (shape[0], shape[3], shape[2], shape[1], len(self.varData))
 
-        self.lock = threading.Lock()
 
 
     def __getitem__(self, keys):
 
         keys, shape = self.process_keys(keys)
         output = []
-        with self.lock:
+        with MesonhInterface.lock:
             for var in self.varData:
                 output.append(var[keys].reshape(shape))
         return np.array(output).transpose((1,4,3,2,0)).squeeze()
