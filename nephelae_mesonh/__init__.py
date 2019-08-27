@@ -1,4 +1,5 @@
 from .MesonhInterface import MesonhInterface
-# from .MesoNHVariable    import MesoNHVariable
+from .MesonhVariable  import MesonhVariable
+
 # from .NetCDFInterface   import NetCDFInterface
 # from .MesoNHCachedProbe import MesoNHCachedProbe

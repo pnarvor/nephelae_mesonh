@@ -3,11 +3,11 @@ import numpy as np
 from nephelae.types import Position
 from nephelae.array import DimensionHelper, PeriodicContainer, ScaledArray
 
-from .NetCDFInterface import NetCDFInterface
+from .MesonhInterface import MesonhInterface
 
-class MesoNHVariable(ScaledArray):
+class MesonhVariable(ScaledArray):
 
-    """MesoNHVariable
+    """MesonhVariable
 
     Helper class to access MesoNH data using space coordinates
     instead of indexes.
@@ -65,7 +65,7 @@ class MesoNHVariable(ScaledArray):
 
             atm: (netCDF4.MFDataset) ALREADY OPENED to allow for several 
                  MesoNHVariables on the same MFDataset. (Is thread
-                 protected by a mutex if only opened by MesoNHVariable types).
+                 protected by a mutex if only opened by MesonhVariable types).
             
             var: (string) Variable to read in the MFDataset.
 
@@ -100,10 +100,10 @@ class MesoNHVariable(ScaledArray):
     def __init__(self, atm, var, origin=None, interpolation='linear'):
 
         # Getting dimensions of MesoNH array and conversion in SI units
-        tdim = atm.variables[MesoNHVariable.tvar][:]
-        xdim = 1000.0*atm.variables[MesoNHVariable.xvar][:]
-        ydim = 1000.0*atm.variables[MesoNHVariable.yvar][:]
-        zdim = 1000.0*np.squeeze(atm.variables[MesoNHVariable.zvar][:,0,0])
+        tdim = atm.variables[MesonhVariable.tvar][:]
+        xdim = 1000.0*atm.variables[MesonhVariable.xvar][:]
+        ydim = 1000.0*atm.variables[MesonhVariable.yvar][:]
+        zdim = 1000.0*np.squeeze(atm.variables[MesonhVariable.zvar][:,0,0])
 
         # Seems more logical to start a simulation at time 0.0 in any case ?
         tdim = tdim - tdim[0]
@@ -117,13 +117,13 @@ class MesoNHVariable(ScaledArray):
         
         dimHelper = DimensionHelper()
         dimHelper.add_dimension(tdim, 'LUT')
-        dimHelper.add_dimension(zdim, 'LUT')
-        dimHelper.add_dimension(ydim, 'linear')
         dimHelper.add_dimension(xdim, 'linear')
+        dimHelper.add_dimension(ydim, 'linear')
+        dimHelper.add_dimension(zdim, 'LUT')
 
         # Creating a ScaledArray with a PeriodicContainer as base
         # (MesoNH x,y are periodic)
-        super().__init__(PeriodicContainer(NetCDFInterface(atm, var), [2,3]),
+        super().__init__(PeriodicContainer(MesonhInterface(atm, var), [1,2]),
                          dimHelper, interpolation)
     
 
@@ -198,6 +198,9 @@ class MesoNHVariable(ScaledArray):
                 raise ValueError("Index should be either a numeric type or a slice")
         
         bounds = self.bounds
+        # return (crop_key(keys[0], bounds[0]),
+        #         crop_key(keys[1], bounds[1]),
+        #         keys[2], keys[3])
         return (crop_key(keys[0], bounds[0]),
-                crop_key(keys[1], bounds[1]),
-                keys[2], keys[3])
+                keys[1], keys[2],
+                crop_key(keys[3], bounds[3]))

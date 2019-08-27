@@ -31,7 +31,6 @@ class MesonhInterface:
         shape = []
         for dim in self.varData[0].dimensions:
             shape.append(len(self.mesonhDataset.dimensions[dim]))
-        # self.internalShape = tuple(shape)
         self.shape = (shape[0], shape[3], shape[2], shape[1], len(self.varData))
 
         self.lock = threading.Lock()
@@ -44,7 +43,6 @@ class MesonhInterface:
         with self.lock:
             for var in self.varData:
                 output.append(var[keys].reshape(shape))
-        # return np.array(output).transpose((1,4,3,2,0)) # to check
         return np.array(output).transpose((1,4,3,2,0)).squeeze()
             
 
