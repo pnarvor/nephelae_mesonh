@@ -3,7 +3,7 @@ import time
 
 from nephelae.array import DimensionBounds
 
-class MesoNHCachedProbe:
+class MesonhCachedProbe:
 
     """MesoNHCachedProbe
 
