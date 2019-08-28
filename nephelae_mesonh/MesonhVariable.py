@@ -114,6 +114,13 @@ class MesonhVariable(ScaledArray):
             xdim = xdim - xdim[0] + origin[1]
             ydim = ydim - ydim[0] + origin[2]
             zdim = zdim - zdim[0] + origin[3]
+
+        self.resolution = (
+            (tdim[-1] - tdim[0]) / (len(tdim) - 1),
+            (xdim[-1] - xdim[0]) / (len(xdim) - 1),
+            (ydim[-1] - ydim[0]) / (len(ydim) - 1),
+            (zdim[-1] - zdim[0]) / (len(zdim) - 1))
+
         
         dimHelper = DimensionHelper()
         dimHelper.add_dimension(tdim, 'LUT')
@@ -145,7 +152,7 @@ class MesonhVariable(ScaledArray):
 
         if name == 'actual_range':
             # Wrapper around MFDataset.variables['var'].actual_range
-            return self.data.data.varData.actual_range
+            return [var.actual_range for var in self.data.data.varData]
         else:
             return super().__getattr__(name)
 
