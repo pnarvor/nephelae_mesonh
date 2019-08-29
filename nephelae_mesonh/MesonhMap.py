@@ -1,4 +1,5 @@
 from nephelae.mapping import MapInterface
+from nephelae.types   import Bounds
 
 from .MesonhVariable  import MesonhVariable
 
@@ -13,7 +14,8 @@ class MesonhMap(MapInterface):
         super().__init__(name)
         # attribute and not a subclass because python multiple inheritance system
         # seems fragile
-        self.mesonh = MesonhVariable(atm, mesonhVar, origin, interpolation)
+        self.mesonh    = MesonhVariable(atm, mesonhVar, origin, interpolation)
+        self.dataRange = [Bounds(r[0],r[-1]) for r in self.mesonh.actual_range]
 
     
     def at_locations(self, locations, returnStddev=False):
@@ -39,6 +41,14 @@ class MesonhMap(MapInterface):
 
     def resolution(self):
         return self.mesonh.resolution
+
+
+    def range(self):
+        return self.dataRange
+
+    
+    def computes_stddev(self):
+        return False
 
 
     def __getitem__(self, keys):

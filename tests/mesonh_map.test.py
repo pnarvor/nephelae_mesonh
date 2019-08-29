@@ -48,55 +48,55 @@ print("Shape : (", atmShape.t, atmShape.z, atmShape.x, atmShape.y, ")")
 data0 = MesonhMap('variable0', atm, var0, interpolation='linear')
 data1 = MesonhMap('variable1', atm, var1, interpolation='linear')
 
-# z0 = 1100.0
-z0 = 1280.0
-y0 = 4500.0
-xySlice = slice(0.0, 12000.0, None)
-# zSlice = slice(None, None, None)
-zSlice = slice(0.0, 12000.0, None)
-tStart = time.time()
-
-xyBounds = data0[0.0,xySlice,xySlice,z0].bounds
-xyExtent = [xyBounds[0][0], xyBounds[0][1], xyBounds[1][0], xyBounds[1][1]]
-xzBounds = data0[0.0,xySlice,y0,zSlice].bounds
-xzExtent = [xzBounds[0][0], xzBounds[0][1], xzBounds[1][0], xzBounds[1][1]]
-
-print('Started !')
-
-fig, axes = plt.subplots(2,2, sharex=True)
-varDisp0 = axes[0][0].imshow(data0[0.0, xySlice, xySlice,     z0].data.T, cmap=plt.cm.viridis, origin='lower', extent=xyExtent)
-varDisp1 = axes[1][0].imshow(data0[0.0, xySlice,      y0, zSlice].data.T, cmap=plt.cm.viridis, origin='lower', extent=xzExtent)
-varDisp2 = axes[0][1].imshow(data1[0.0, xySlice, xySlice,     z0].data.T, cmap=plt.cm.viridis, origin='lower', extent=xyExtent)
-varDisp3 = axes[1][1].imshow(data1[0.0, xySlice,      y0, zSlice].data.T, cmap=plt.cm.viridis, origin='lower', extent=xzExtent)
-
-def init():
-
-    axes[0][0].plot([xySlice.start, xySlice.stop], [y0, y0], color=[0.0,0.0,0.0,1.0])
-    axes[1][0].plot([xySlice.start, xySlice.stop], [z0, z0], color=[0.0,0.0,0.0,1.0])
-    axes[0][1].plot([xySlice.start, xySlice.stop], [y0, y0], color=[0.0,0.0,0.0,1.0])
-    axes[1][1].plot([xySlice.start, xySlice.stop], [z0, z0], color=[0.0,0.0,0.0,1.0])
-
-def update(i):
-    
-    fastForward = 20.0
-    t = fastForward*(time.time() - tStart)
-    t = t - int(t / (tvar[-1] - tvar[0]))*(tvar[-1] - tvar[0])
-
-    varDisp0.set_data(data0[t, xySlice, xySlice,     z0].data.T)
-    varDisp1.set_data(data0[t, xySlice,      y0, zSlice].data.T)
-    varDisp2.set_data(data1[t, xySlice, xySlice,     z0].data.T)
-    varDisp3.set_data(data1[t, xySlice,      y0, zSlice].data.T)
-
-    # time.sleep(0.1)
-
-anim = animation.FuncAnimation(
-    fig,
-    update,
-    init_func=init,
-    frames=atmShape.x*atmShape.y,
-    interval = 1)
-
-plt.show(block=False)
+# # z0 = 1100.0
+# z0 = 1280.0
+# y0 = 4500.0
+# xySlice = slice(0.0, 12000.0, None)
+# # zSlice = slice(None, None, None)
+# zSlice = slice(0.0, 12000.0, None)
+# tStart = time.time()
+# 
+# xyBounds = data0[0.0,xySlice,xySlice,z0].bounds
+# xyExtent = [xyBounds[0][0], xyBounds[0][1], xyBounds[1][0], xyBounds[1][1]]
+# xzBounds = data0[0.0,xySlice,y0,zSlice].bounds
+# xzExtent = [xzBounds[0][0], xzBounds[0][1], xzBounds[1][0], xzBounds[1][1]]
+# 
+# print('Started !')
+# 
+# fig, axes = plt.subplots(2,2, sharex=True)
+# varDisp0 = axes[0][0].imshow(data0[0.0, xySlice, xySlice,     z0].data.T, cmap=plt.cm.viridis, origin='lower', extent=xyExtent)
+# varDisp1 = axes[1][0].imshow(data0[0.0, xySlice,      y0, zSlice].data.T, cmap=plt.cm.viridis, origin='lower', extent=xzExtent)
+# varDisp2 = axes[0][1].imshow(data1[0.0, xySlice, xySlice,     z0].data.T, cmap=plt.cm.viridis, origin='lower', extent=xyExtent)
+# varDisp3 = axes[1][1].imshow(data1[0.0, xySlice,      y0, zSlice].data.T, cmap=plt.cm.viridis, origin='lower', extent=xzExtent)
+# 
+# def init():
+# 
+#     axes[0][0].plot([xySlice.start, xySlice.stop], [y0, y0], color=[0.0,0.0,0.0,1.0])
+#     axes[1][0].plot([xySlice.start, xySlice.stop], [z0, z0], color=[0.0,0.0,0.0,1.0])
+#     axes[0][1].plot([xySlice.start, xySlice.stop], [y0, y0], color=[0.0,0.0,0.0,1.0])
+#     axes[1][1].plot([xySlice.start, xySlice.stop], [z0, z0], color=[0.0,0.0,0.0,1.0])
+# 
+# def update(i):
+#     
+#     fastForward = 20.0
+#     t = fastForward*(time.time() - tStart)
+#     t = t - int(t / (tvar[-1] - tvar[0]))*(tvar[-1] - tvar[0])
+# 
+#     varDisp0.set_data(data0[t, xySlice, xySlice,     z0].data.T)
+#     varDisp1.set_data(data0[t, xySlice,      y0, zSlice].data.T)
+#     varDisp2.set_data(data1[t, xySlice, xySlice,     z0].data.T)
+#     varDisp3.set_data(data1[t, xySlice,      y0, zSlice].data.T)
+# 
+#     # time.sleep(0.1)
+# 
+# anim = animation.FuncAnimation(
+#     fig,
+#     update,
+#     init_func=init,
+#     frames=atmShape.x*atmShape.y,
+#     interval = 1)
+# 
+# plt.show(block=False)
 
 
 
