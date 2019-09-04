@@ -123,14 +123,15 @@ class MesonhVariable(ScaledArray):
 
         
         dimHelper = DimensionHelper()
-        dimHelper.add_dimension(tdim, 'LUT')
+        # dimHelper.add_dimension(tdim, 'LUT')
+        dimHelper.add_dimension(tdim, 'linear')
         dimHelper.add_dimension(xdim, 'linear')
         dimHelper.add_dimension(ydim, 'linear')
         dimHelper.add_dimension(zdim, 'LUT')
 
         # Creating a ScaledArray with a PeriodicContainer as base
         # (MesoNH x,y are periodic)
-        super().__init__(PeriodicContainer(MesonhInterface(atm, var), [1,2]),
+        super().__init__(PeriodicContainer(MesonhInterface(atm, var), [0,1,2]),
                          dimHelper, interpolation)
     
 
@@ -160,7 +161,7 @@ class MesonhVariable(ScaledArray):
     def __getitem__(self, keys):
 
         """
-        /!\ This is essentially a wrapper around ScaledArray
+        /!\ This is essentially a wrapper around ScaledArray.__getitem__
         /!\ BUT WILL CROP THE KEYS TO FIT INTO THE ARRAY.
         """
 
@@ -171,6 +172,9 @@ class MesonhVariable(ScaledArray):
     def crop_keys(self, keys):
 
         """Crops keys to self.bounds"""
+
+        # print("keys   :", keys)
+        # print("bounds :", self.bounds)
 
         def crop_key(key, bounds):
             if isinstance(key, (int, float)):
@@ -203,11 +207,15 @@ class MesonhVariable(ScaledArray):
                 return slice(key_start, key_stop, None)
             else:
                 raise ValueError("Index should be either a numeric type or a slice")
-        
-        bounds = self.bounds
+       
+        # bounds = self.bounds
         # return (crop_key(keys[0], bounds[0]),
-        #         crop_key(keys[1], bounds[1]),
-        #         keys[2], keys[3])
-        return (crop_key(keys[0], bounds[0]),
-                keys[1], keys[2],
-                crop_key(keys[3], bounds[3]))
+        #         keys[1], keys[2],
+        #         crop_key(keys[3], bounds[3]))
+        newKeys = []
+        for key, b, periodic in zip(keys, self.bounds, self.data.isPeriodic):
+            if periodic:
+                newKeys.append(key)
+            else:
+                newKeys.append(crop_key(key, b))
+        return tuple(newKeys)
