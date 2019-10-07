@@ -12,8 +12,6 @@ class MesonhVariable(ScaledArray):
     Helper class to access MesoNH data using space coordinates
     instead of indexes.
 
-    /!\ Reading is done using this order : [t,z,y,x]
-
     Attributes (inherited form mesonh_interface.ScaledArray):
 
 
