@@ -30,9 +30,12 @@ class MesonhInterface:
         else:
             raise TypeError("mesonhVariable must be a string or a tuple or strings")
             
-        shape = []
-        for dim in self.varData[0].dimensions:
-            shape.append(len(self.mesonhDataset.dimensions[dim]))
+        # shape = []
+        # # for dim in self.varData[0].dimensions:
+        # #     shape.append(len(self.mesonhDataset.dimensions[dim]))
+        # for dim in self.mesonhDataset.dimensions:
+        #     shape.append(len(dim['data']))
+        shape = [len(dim['data']) for dim in self.mesonhDataset.dimensions]
         self.shape = (shape[0], shape[3], shape[2], shape[1], len(self.varData))
 
 
@@ -43,7 +46,7 @@ class MesonhInterface:
         output = []
         with MesonhInterface.lock:
             for var in self.varData:
-                output.append(var[keys].reshape(shape))
+                output.append(np.array(var[keys]).reshape(shape))
         return np.array(output).transpose((1,4,3,2,0)).squeeze()
             
 
