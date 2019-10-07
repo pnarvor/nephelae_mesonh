@@ -11,7 +11,7 @@ from netCDF4 import MFDataset
 
 from nephelae.array import ScaledArray
 from nephelae.array import DimensionHelper
-from nephelae_mesonh import MesonhVariable
+from nephelae_mesonh import MesonhVariable, MesonhDataset
 
 var0 = 'RCT'
 # var1 = 'UT'     # WE wind
@@ -25,19 +25,27 @@ var1 = 'WT'     # vertical wind
 # var1 = 'SVT002' # User data (?)
 # var1 = 'SVT003'  # User data (?)
 
-atm = MFDataset('/home/pnarvor/work/nephelae/data/MesoNH-2019-02/REFHR.1.ARMCu.4D.nc')
+# mesonhFiles = '/home/pnarvor/work/nephelae/data/MesoNH-2019-02/REFHR.1.ARMCu.4D.nc'
+mesonhFiles = '/home/pnarvor/work/nephelae/data/nephelae-remote/Nephelae_tmp/download/L12zo.1.BOMEX.OUT.*.nc'
 
-tvar = atm.variables['time'][:]
-tvar = tvar - tvar[0]
-xvar = 1000.0*atm.variables['W_E_direction'][:]
-yvar = 1000.0*atm.variables['S_N_direction'][:]
-zvar = 1000.0*np.squeeze(atm.variables['VLEV'][:,0,0])
+atm = MesonhDataset(mesonhFiles)
+
+# tvar = atm.variables['time'][:]
+# tvar = tvar - tvar[0]
+# xvar = 1000.0*atm.variables['W_E_direction'][:]
+# yvar = 1000.0*atm.variables['S_N_direction'][:]
+# zvar = 1000.0*np.squeeze(atm.variables['VLEV'][:,0,0])
+ 
+tvar = atm.dimensions[0]['data']
+xvar = atm.dimensions[3]['data']
+yvar = atm.dimensions[2]['data']
+zvar = atm.dimensions[1]['data']
 
 atmShape = type('AtmShape', (), {})()
-atmShape.t = len(tvar)
-atmShape.z = len(zvar)
-atmShape.x = len(xvar)
-atmShape.y = len(yvar)
+atmShape.t = len(atm.dimensions[0]['data'])
+atmShape.z = len(atm.dimensions[1]['data'])
+atmShape.y = len(atm.dimensions[2]['data'])
+atmShape.x = len(atm.dimensions[3]['data'])
 
 print("Shape : (", atmShape.t, atmShape.z, atmShape.x, atmShape.y, ")")
 
@@ -52,7 +60,11 @@ y0 = 4500.0
 xySlice = slice(0.0, 12000.0, None)
 # zSlice = slice(None, None, None)
 zSlice = slice(0.0, 12000.0, None)
-tStart = time.time()
+# xySlice = slice(0.0, 3000.0, None)
+# # zSlice = slice(None, None, None)
+# zSlice = slice(0.0, 12000.0, None)
+# tStart = time.time()
+tStart = 0
 
 xyBounds = data0[0.0,xySlice,xySlice,z0].bounds
 xyExtent = [xyBounds[0][0], xyBounds[0][1], xyBounds[1][0], xyBounds[1][1]]
@@ -75,10 +87,14 @@ def init():
     axes[1][1].plot([xySlice.start, xySlice.stop], [z0, z0], color=[0.0,0.0,0.0,1.0])
 
 def update(i):
-    
+     
     fastForward = 20.0
-    t = fastForward*(time.time() - tStart)
-    t = t - int(t / (tvar[-1] - tvar[0]))*(tvar[-1] - tvar[0])
+    # t = fastForward*(time.time() - tStart)
+    # t = t - int(t / (tvar[-1] - tvar[0]))*(tvar[-1] - tvar[0])
+
+    global tStart
+    t = tStart
+    tStart = tStart + fastForward
 
     varDisp0.set_data(data0[t, xySlice, xySlice,     z0].data.T)
     varDisp1.set_data(data0[t, xySlice,      y0, zSlice].data.T)

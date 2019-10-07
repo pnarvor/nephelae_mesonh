@@ -88,20 +88,12 @@ class MesonhVariable(ScaledArray):
                 (underlying array is still discretized and each "pixel"
                 has a fixed dimension "coordinate")
     """
-
-    tvar = 'time'
-    zvar = 'VLEV'
-    yvar = 'S_N_direction'
-    xvar = 'W_E_direction'
-
-
     def __init__(self, atm, var, origin=None, interpolation='linear'):
 
-        # Getting dimensions of MesoNH array and conversion in SI units
-        tdim = atm.variables[MesonhVariable.tvar][:]
-        xdim = 1000.0*atm.variables[MesonhVariable.xvar][:]
-        ydim = 1000.0*atm.variables[MesonhVariable.yvar][:]
-        zdim = 1000.0*np.squeeze(atm.variables[MesonhVariable.zvar][:,0,0])
+        tdim = atm.dimensions[0]['data']
+        xdim = atm.dimensions[3]['data']
+        ydim = atm.dimensions[2]['data']
+        zdim = atm.dimensions[1]['data']
 
         # Seems more logical to start a simulation at time 0.0 in any case ?
         tdim = tdim - tdim[0]

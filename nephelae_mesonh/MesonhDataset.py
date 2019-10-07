@@ -67,8 +67,10 @@ class MesonhDataset:
                 if dimName == MesonhDataset.defaultTimeVariable:
                     # Dimension is time. Conversion to float(seconds)
                     # Any idea on simpler way to do this is welcome
-                    # (why so complicated ???)A
-                    # Also time origin set to 0
-                    data = (data - data[0]) / np.array([1], dtype='m8[s]')
+                    # (why so complicated ???)
+                    # Time origin set to 0
+                    data = np.array((data - data[0]) / np.array([1], dtype='m8[s]'), dtype=float)
+                else:
+                    data = np.array(data, dtype=float)
                 self.dimensions.append({'name':dimName, 'data':data})
 
