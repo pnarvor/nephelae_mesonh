@@ -123,30 +123,15 @@ class MesonhVariable(ScaledArray):
         # (MesoNH x,y are periodic)
         super().__init__(PeriodicContainer(MesonhInterface(atm, var), [0,1,2]),
                          dimHelper, interpolation)
+
+        actual_range = []
+        for var in self.data.data.varData:
+            if not hasattr(var, 'actual_range'):
+                actual_range.append(None)
+            else:
+                actual_range.append(var.actual_range)
+        self.actual_range = tuple(actual_range)
     
-
-    # CANNOT DO THIS BECAUSE SUBARRAY INHERITS DIMENSIONNAL STRUCTURE
-    # Implement this in NetCDFInterface
-    # def __getitem__(self, keys):
-
-    #     # Had to overload ScaledArray.__getitem__ because of
-    #     # weird MesoNH [t,z,y,x] access
-
-    #     """Access array data, key order is [t,x,y,z]
-    #         Return a non-periodic scaled array, or
-    #         a single floating point number.
-    #     """
-    #     
-    #     return super().__getitem__((keys[0],keys[3],keys[2],keys[1]))
-
-    def __getattr__(self, name):
-
-        if name == 'actual_range':
-            # Wrapper around MFDataset.variables['var'].actual_range
-            return [var.actual_range for var in self.data.data.varData]
-        else:
-            return super().__getattr__(name)
-
 
     def __getitem__(self, keys):
 
