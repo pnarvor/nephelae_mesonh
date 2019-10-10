@@ -48,7 +48,7 @@ class MesonhInterface:
             for var in self.varData:
                 output.append(np.array(var[keys]).reshape(shape))
         return np.array(output).transpose((1,4,3,2,0)).squeeze()
-            
+
 
     def process_keys(self, keys):
 
@@ -66,11 +66,17 @@ class MesonhInterface:
                 if key.start is None:
                     key_start = 0
                 else:
-                    key_start = key.start
+                    if key.start < 0:
+                        key_start = key.start + dim
+                    else:
+                        key_start = key.start
                 if key.stop is None:
                     key_stop = dim
                 else:
-                    key_stop = key.stop
+                    if key.stop < 0:
+                        key_stop = key.stop + dim
+                    else:
+                        key_stop = key.stop
                 shape.append(key_stop - key_start)
             else:
                 shape.append(1)
