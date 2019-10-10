@@ -15,7 +15,7 @@ class MesonhMap(MapInterface):
         # attribute and not a subclass because python multiple inheritance system
         # seems fragile
         self.mesonh    = MesonhVariable(atm, mesonhVar, origin, interpolation)
-        self.dataRange = [Bounds(r[0],r[-1]) for r in self.mesonh.actual_range]
+        self.dataRange = self.mesonh.actual_range
 
     
     def at_locations(self, locations, returnStddev=False):

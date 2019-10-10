@@ -1,6 +1,6 @@
 import numpy as np
 
-from nephelae.types import Position
+from nephelae.types import Position, Bounds
 from nephelae.array import DimensionHelper, PeriodicContainer, ScaledArray
 
 from .MesonhInterface import MesonhInterface
@@ -127,7 +127,7 @@ class MesonhVariable(ScaledArray):
         actual_range = []
         for var in self.data.data.varData:
             if not hasattr(var, 'actual_range'):
-                actual_range.append(None)
+                actual_range.append(Bounds())
             else:
                 actual_range.append(var.actual_range)
         self.actual_range = tuple(actual_range)
