@@ -10,10 +10,10 @@ setup(name='nephelae_mesonh',
       packages=find_packages(include=['nephelae_mesonh']),
       install_requires=[
         'numpy',
-        'netCDF4',
         'utm',
         'matplotlib',
-        'sh'
+        'sh',
+        'xarray'
       ],
       zip_safe=False)
 
