@@ -14,8 +14,12 @@ class MesonhMap(MapInterface):
         super().__init__(name)
         # attribute and not a subclass because python multiple inheritance system
         # seems fragile
-        self.mesonh    = MesonhVariable(atm, mesonhVar, origin, interpolation)
-        self.dataRange = self.mesonh.actual_range
+        self.mesonh     = MesonhVariable(atm, mesonhVar, origin, interpolation)
+        self.dataRange  = self.mesonh.actual_range
+        if isinstance(mesonhVar, str):
+            self.sampleSize = 1
+        else:
+            self.sampleSize = len(mesonhVar)
 
     
     def at_locations(self, locations, returnStddev=False):
@@ -42,6 +46,9 @@ class MesonhMap(MapInterface):
     def resolution(self):
         return self.mesonh.resolution
 
+    
+    def sample_size(self):
+        return self.sampleSize
 
     def range(self):
         return self.dataRange
