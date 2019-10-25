@@ -20,8 +20,8 @@ atm0 = xr.open_mfdataset(mesonhFiles)
 rct0  = atm0.RCT
 # wind0 = {'ut':atm.UT, 'vt':atm.VT, 'wt':atm.WT}
 
-atm1 = MFDataset(mesonhFiles)
-rct1 = atm1.variables['RCT']
+# atm1 = MFDataset(mesonhFiles)
+# rct1 = atm1.variables['RCT']
 
 
 
