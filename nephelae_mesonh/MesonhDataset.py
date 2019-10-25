@@ -61,6 +61,24 @@ class MesonhDataset:
                 print("Failed to infer dimensions from data. " +
                       "AttributeError feedback :", e)
 
+        # TO BE REMOVED ############################################### 
+        if 'VLEV' in self.data.variables.keys():
+            data = self.variables['time']
+            data = np.array((data - data[0]) / np.array([1], dtype='m8[s]'), dtype=float)
+            self.dimensions.append({'name':'time', 'data':data})
+
+            data = np.array(self.variables['VLEV'][:,0,0])
+            self.dimensions.append({'name':'vertical_levels', 'data': 1000.0*data})
+
+            data = np.array(self.variables['S_N_direction'][:])
+            self.dimensions.append({'name':'S_N_direction', 'data': 1000.0*data})
+
+            data = np.array(self.variables['W_E_direction'][:])
+            self.dimensions.append({'name':'W_E_direction', 'data': 1000.0*data})
+
+            return
+        # TO BE REMOVED ############################################### 
+
         if dimensionNames is not None:
             for dimName in dimensionNames:
                 data = self.variables[dimName]
