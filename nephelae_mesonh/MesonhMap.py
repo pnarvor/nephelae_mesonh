@@ -50,12 +50,9 @@ class MesonhMap(MapInterface):
     def sample_size(self):
         return self.sampleSize
 
+
     def range(self):
         return self.dataRange
-
-    
-    def computes_stddev(self):
-        return False
 
 
     def __getitem__(self, keys):
