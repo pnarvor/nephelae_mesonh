@@ -1,6 +1,8 @@
 import threading
 import numpy as np
 
+t0 = 25
+
 class MesonhInterface:
 
     """
@@ -46,9 +48,21 @@ class MesonhInterface:
         output = []
         with MesonhInterface.lock:
             for var in self.varData:
-                output.append(np.array(var[keys]).reshape(shape))
+                # output.append(np.array(var[keys]).reshape(shape))
+                output.append(self.fixed_time_read(var, keys, shape).reshape(shape))
         return np.array(output).transpose((1,4,3,2,0)).squeeze()
 
+    
+    def fixed_time_read(self, var, keys, shape):
+        keys = list(keys)
+        keys[0] = t0
+        keys = tuple(keys)
+        output = np.array(var[keys])
+        # print("output1", output.shape)
+        output = np.array([[output]] * shape[0])
+        # print("output2", output.shape)
+
+        return output
 
     def process_keys(self, keys):
 
