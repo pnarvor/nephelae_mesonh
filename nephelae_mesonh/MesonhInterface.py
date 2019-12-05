@@ -1,7 +1,7 @@
 import threading
 import numpy as np
 
-t0 = 25
+t0 = 92
 
 class MesonhInterface:
 
