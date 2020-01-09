@@ -1,7 +1,7 @@
 import threading
 import time
 
-from nephelae.array import DimensionBounds
+from nephelae.types import Bounds
 
 class MesonhCachedProbe:
 
@@ -19,7 +19,7 @@ class MesonhCachedProbe:
     def __init__(self, mesonhVariable, cacheBounds, triggerThreshold = 0.5):
 
         self.var = mesonhVariable
-        self.cacheBounds = [DimensionBounds([b[0],b[-1]]) for b in cacheBounds]
+        self.cacheBounds = [Bounds(b[0],b[-1]) for b in cacheBounds]
         self.thresholdValues = [triggerThreshold*(b.max-b.min) for b in self.cacheBounds]
 
         self.cache      = None
