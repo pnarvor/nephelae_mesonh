@@ -10,8 +10,9 @@ class MesonhMap(MapInterface):
     Implementation of MapInterface to MesonhVariable
     """
 
-    def __init__(self, name, atm, mesonhVar, origin=None, interpolation='linear'):
-        super().__init__(name)
+    def __init__(self, name, atm, mesonhVar, origin=None,
+            interpolation='linear', threshold=0):
+        super().__init__(name, threshold=threshold)
         # attribute and not a subclass because python multiple inheritance system
         # seems fragile
         self.mesonh     = MesonhVariable(atm, mesonhVar, origin, interpolation)
